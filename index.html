@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual Thinking en línia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  /* Mapa bessó: paper quadriculat, tinta negra i punts vermells de votació, com el kit físic */
+  --paper:#fbfbf7;
+  --panel:#f0f0ea;
+  --ink:#121212;
+  --muted:#66665f;
+  --rule:#d6d6cd;
+  --red:#d7362a;
+  --hi:#fff1a8;
+  --white:#ffffff;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --hand:"Kalam", "Segoe Print", "Comic Sans MS", cursive;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.muted{color:var(--muted)}
+.k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.hand{font-family:var(--hand)}
+.empty{color:var(--muted);font-size:13px}
+
+/* botons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:2px solid var(--ink);background:var(--white);border-radius:999px;padding:7px 16px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--hi)}
+.btn.pri{background:var(--ink);color:var(--white)}
+.btn.pri:hover{background:#333}
+.btn.sm{padding:4px 11px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent;text-decoration:underline}
+.btn.ghost:hover{background:var(--panel)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.armed{background:var(--red);border-color:var(--red);color:#fff}
+input[type=text],input:not([type]),input[type=date],select,textarea{border:2px solid var(--ink);border-radius:10px;background:var(--white);padding:8px 10px;min-width:0}
+textarea{resize:vertical;width:100%}
+
+/* capçalera */
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;background:var(--ink);color:var(--white);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:50%;border:4px solid var(--white);position:relative;flex:none}
+.mark::after{content:"";position:absolute;width:12px;height:7px;border:3px solid var(--white);border-radius:999px;right:-14px;top:-8px}
+.brand b{font-weight:900;font-size:18px;display:block;line-height:1}
+.brand span{font-size:12px;opacity:.75}
+.top .back{color:var(--white);text-decoration:none;font-weight:700;border:2px solid #555;border-radius:999px;padding:4px 12px}
+.top .back:hover{border-color:var(--white)}
+.stitle{display:flex;flex-direction:column;min-width:0;flex:1}
+.stitle b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stitle span{font-size:12px;opacity:.75}
+.roles{display:flex;background:#2a2a2a;border-radius:999px;padding:3px;gap:2px}
+.roles button{border:0;background:transparent;color:#ddd;padding:6px 14px;border-radius:999px;font-weight:700;cursor:pointer}
+.roles button[aria-selected=true]{background:var(--white);color:var(--ink)}
+#topdyn{display:flex;gap:10px;align-items:center;font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:2px solid currentColor;border-radius:999px;padding:2px 10px;font-weight:700;font-size:12px;white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#3fbf6a}
+.codepill{font-family:var(--display);letter-spacing:.12em}
+
+/* inici */
+.home{max-width:1180px;margin:0 auto;padding:28px 20px 60px;display:grid;gap:24px}
+.intro h1{font-size:clamp(26px,4vw,40px);font-weight:900;max-width:22ch}
+.intro p{max-width:65ch;color:#333;font-size:16px}
+.homegrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
+.card{background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:22px;display:grid;gap:16px}
+.card h2{font-size:22px;font-weight:900}
+.field{display:grid;gap:6px}
+.field>span{font-weight:700;font-size:13px}
+.routes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rcard{position:relative;border:3px solid var(--rule);border-radius:14px;padding:14px;cursor:pointer;display:grid;gap:4px;background:var(--paper)}
+.rcard input{position:absolute;opacity:0;pointer-events:none}
+.rcard:has(input:checked){border-color:var(--ink);background:var(--hi)}
+.rcard:has(input:focus-visible){outline:3px solid var(--red);outline-offset:2px}
+.rcard b{font-size:17px;font-weight:900}
+.rcard small{color:var(--muted)}
+.mapchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.mapchecks label{display:flex;gap:8px;align-items:center;font-size:14px;padding:5px 8px;border-radius:8px;background:var(--panel)}
+.mapchecks .n{font-weight:900;min-width:2.2em}
+.modes{display:flex;gap:10px;flex-wrap:wrap}
+.modes label{display:flex;gap:8px;align-items:flex-start;border:2px solid var(--rule);border-radius:12px;padding:10px 12px;flex:1;min-width:200px;cursor:pointer}
+.modes label:has(input:checked){border-color:var(--ink)}
+.modes small{display:block;color:var(--muted)}
+.joinform{display:flex;gap:8px}
+.joinform input{flex:1;text-transform:uppercase;letter-spacing:.1em}
+.slist{display:grid;gap:10px}
+.sitem{border:2px solid var(--ink);border-radius:14px;padding:12px 14px;display:grid;gap:8px;background:var(--paper)}
+.sitem .h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.sitem b{font-size:16px}
+.sitem small{color:var(--muted)}
+.sitem .acts{display:flex;gap:6px;flex-wrap:wrap}
+.banner{border:2px dashed var(--ink);border-radius:12px;padding:12px 14px;background:var(--hi)}
+
+/* facilitació */
+.fac{display:grid;grid-template-columns:250px minmax(0,1fr) 330px;min-height:calc(100% - 60px)}
+.rail{border-right:2px solid var(--ink);padding:16px 12px;background:var(--panel)}
+.rail h3{font-size:12px;margin:0 0 10px 6px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.step{width:100%;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;text-align:left;border:2px solid transparent;background:transparent;border-radius:12px;padding:7px 8px;cursor:pointer}
+.step:hover{background:var(--white)}
+.step.sel{background:var(--white);border-color:var(--ink)}
+.step .n{width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:13px;background:var(--white)}
+.step.live .n{background:var(--red);border-color:var(--red);color:#fff}
+.step .tt{font-weight:700;font-size:14px;line-height:1.2}
+.step small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.step em{grid-column:2;font-style:normal;font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.06em}
+.stage{padding:18px 22px 40px;display:grid;gap:14px;align-content:start;min-width:0}
+.maphead{display:flex;gap:14px;align-items:flex-start}
+.maphead .n{width:54px;height:54px;border-radius:50%;border:4px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:18px;flex:none;background:var(--white)}
+.maphead h2{font-size:24px;font-weight:900}
+.maphead p{margin:4px 0 0;color:#333;max-width:70ch}
+.chip{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:999px;background:var(--red);color:#fff;vertical-align:middle;margin-left:6px}
+.chip.doc{background:var(--ink)}
+.side{border-left:2px solid var(--ink);padding:16px;display:grid;gap:14px;align-content:start;background:var(--panel)}
+.blk{background:var(--white);border:2px solid var(--ink);border-radius:14px;padding:14px;display:grid;gap:10px}
+.blk h3{font-size:14px;font-weight:900}
+.instr{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
+.timer{font-family:var(--display);font-weight:900;font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.timer.running{color:var(--red)}
+.timer.done{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.timer.done{animation:none;text-decoration:underline}}
+.tbtns{display:flex;gap:6px;flex-wrap:wrap}
+.ok{margin:0;font-weight:700}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.photos figure{margin:0;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--panel);display:grid}
+.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photos figcaption{padding:6px;display:grid;gap:4px}
+.photos small{font-size:11px;color:var(--muted)}
+.up{cursor:pointer}
+
+/* compositor */
+.composer{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:6px 6px 6px 14px}
+.composer input[name=text]{flex:1 1 220px;border:0;padding:8px 4px;font-family:var(--hand);font-size:18px;background:transparent}
+.composer input[name=text]:focus{outline:none}
+.composer:focus-within{outline:3px solid var(--red);outline-offset:2px}
+.composer select,.composer input[type=date],.composer input[name=owner]{border-radius:999px;padding:6px 10px}
+.composer.task{border-radius:16px}
+
+/* etiquetes */
+.lbl{position:relative;background:var(--white);border:3px solid var(--ink);font-family:var(--hand);font-size:17px;line-height:1.2;color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.lbl.oval{border-radius:999px;padding:7px 18px 6px;min-width:96px;max-width:230px}
+.lbl.round{border-radius:50%;width:128px;height:128px;padding:12px;border-width:4px;font-weight:700}
+.lbl.round .k{font-family:var(--body);font-size:9px;margin-bottom:2px;line-height:1.1}
+.lbl .t{overflow-wrap:anywhere}
+.lbl .t[contenteditable=true]{outline:2px dashed var(--red);background:var(--hi);min-width:40px}
+.lbl .by{font-family:var(--body);font-size:10px;color:var(--muted);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbl.foto{border-style:double;border-width:5px}
+.lbl .x{position:absolute;top:-10px;right:-10px;width:24px;height:24px;border-radius:50%;border:2px solid var(--ink);background:var(--white);font:700 14px/1 var(--body);cursor:pointer;opacity:0;display:grid;place-items:center;padding:0}
+.lbl:hover .x,.lbl:focus-within .x{opacity:1}
+@media (hover:none){.lbl .x{opacity:1}}
+.lbl[draggable=true]{cursor:grab}
+
+/* mapa de zones */
+.board{min-width:0}
+.zones{display:grid;gap:12px}
+.zgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.zone{background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:12px;display:grid;gap:10px;align-content:start;min-height:150px;background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:18px 18px}
+.zone header h4{font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.zone header p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.zone.over{background-color:var(--hi)}
+.zl{display:flex;flex-wrap:wrap;gap:12px 10px;align-content:flex-start}
+.mission,.center-ring{background:var(--ink);color:var(--white);border-radius:18px;padding:14px 18px;display:grid;gap:6px}
+.mission .sentence{margin:0;font-size:19px;line-height:1.9}
+.mission input,.center-ring input{font-family:var(--hand);font-size:18px;border:0;border-bottom:2px solid var(--white);border-radius:0;background:transparent;color:var(--white);padding:0 4px;width:min(260px,100%)}
+.mission b.hand,.center-ring b.hand{font-size:20px;border-bottom:2px solid #777;padding:0 4px}
+.center-ring{grid-template-columns:auto 1fr;align-items:center;gap:14px;border-radius:999px}
+
+/* llenç */
+.paper{position:relative;width:100%;aspect-ratio:16/10;min-height:420px;background-color:var(--white);background-image:linear-gradient(rgba(0,0,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.06) 1px,transparent 1px);background-size:22px 22px;border:3px solid var(--ink);border-radius:6px;overflow:hidden;touch-action:pan-y}
+.paper .lbl{position:absolute;transform:translate(-50%,-50%);touch-action:none;user-select:none;cursor:grab;z-index:2}
+.paper.ro .lbl{cursor:default}
+.paper .lbl.dragging{cursor:grabbing;z-index:9;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.paper .lbl.round{z-index:1}
+.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.wires line{stroke:var(--ink);stroke-width:5;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.paper-empty{position:absolute;inset:auto 0 45% 0;text-align:center;color:var(--muted);margin:0;padding:0 20px}
+.mtbar{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--white);padding:7px 14px;border-radius:0 0 6px 6px;font-size:12px;margin-top:-3px}
+.mtbar b{font-weight:900}
+
+/* matriu */
+.matrix{display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;gap:6px}
+.matrix .ylab{writing-mode:vertical-rl;transform:rotate(180deg);font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:12px;text-align:center}
+.matrix .xlab{grid-column:2;text-align:center;font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
+.plane::before,.plane::after{content:"";position:absolute;background:var(--ink);z-index:0}
+.plane::before{left:50%;top:0;bottom:0;width:3px;transform:translateX(-50%)}
+.plane::after{top:50%;left:0;right:0;height:3px;transform:translateY(-50%)}
+.plane .q{position:absolute;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);z-index:1}
+.plane .q1{left:10px;top:8px}.plane .q2{right:10px;top:8px}.plane .q3{left:10px;bottom:8px}.plane .q4{right:10px;bottom:8px}
+.lbl.pending{border-style:dashed}
+.lbl.final{background:var(--hi);box-shadow:0 0 0 5px var(--red)}
+.star{position:absolute;bottom:-12px;right:-8px;border:2px solid var(--ink);background:var(--white);border-radius:999px;font:800 10px/1 var(--body);padding:4px 7px;cursor:pointer;text-transform:uppercase}
+.lbl.final .star{background:var(--red);color:#fff;border-color:var(--red)}
+.votesn{font-family:var(--body);font-size:10px;font-weight:800;color:var(--red)}
+
+/* votació */
+.votebar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:8px 16px}
+.mydots{display:inline-flex;gap:4px}
+.mydots i,.dots i{width:16px;height:16px;border-radius:50%;background:var(--red);display:inline-block}
+.mydots i.used{background:transparent;border:2px solid var(--red)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.vcard{border:3px solid var(--ink);border-radius:18px;padding:14px;display:grid;gap:10px;justify-items:center;background:var(--white)}
+.vcard.on{background:var(--hi)}
+.vcard .lbl{max-width:100%}
+.dots{display:flex;flex-wrap:wrap;gap:4px;min-height:16px;justify-content:center}
+.vcard .cnt{font-weight:900;font-size:13px}
+
+/* NUF */
+.nuf{width:100%;border-collapse:collapse;background:var(--white);border:3px solid var(--ink)}
+.nuf th,.nuf td{border:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:middle}
+.nuf th{background:var(--ink);color:var(--white);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.nuf td.num,.nuf th.num{text-align:center;font-variant-numeric:tabular-nums}
+.nuf td.idea{font-family:var(--hand);font-size:17px}
+.nuf tr.top td{background:var(--hi)}
+.nuf select{padding:4px 6px}
+.nufhead{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+
+/* tasques */
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(200px,1fr));gap:12px;overflow-x:auto}
+.kcol{background:var(--white);border:3px solid var(--ink);border-radius:16px;padding:10px;display:grid;gap:8px;align-content:start;min-height:200px}
+.kcol h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between}
+.kcol.over{background:var(--hi)}
+.tcard{position:relative;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;display:grid;gap:4px;background:var(--paper)}
+.tcard b{font-family:var(--hand);font-size:17px;font-weight:400}
+.tcard small{color:var(--muted);font-size:12px}
+.tcard select{font-size:12px;padding:3px 6px}
+.tcard .x{position:absolute;top:4px;right:6px;border:0;background:transparent;font-weight:800;cursor:pointer}
+.timeline{background:var(--white);border:3px solid var(--ink);border-radius:16px;padding:12px;display:grid;gap:6px;overflow-x:auto}
+.trow{display:grid;grid-template-columns:200px minmax(420px,1fr);gap:10px;align-items:center}
+.tname b{font-family:var(--hand);font-size:16px;font-weight:400;display:block;line-height:1.15}
+.tname small{color:var(--muted);font-size:12px}
+.ttrack{position:relative;height:26px;background-image:repeating-linear-gradient(90deg,var(--rule) 0 1px,transparent 1px calc(100%/var(--w)));border-radius:6px;background-color:var(--paper)}
+.ttrack .bar{position:absolute;top:4px;bottom:4px;border-radius:999px;border:2px solid var(--ink);background:var(--white)}
+.bar.s-doing{background:var(--hi)}.bar.s-done{background:var(--ink)}.bar.s-standby{background:repeating-linear-gradient(45deg,#fff 0 4px,#ddd 4px 8px)}
+.thead{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase}
+.thead .ttrack{background:none;display:grid;grid-template-columns:repeat(var(--w),1fr);height:auto}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:18px;height:10px;border:2px solid var(--ink);border-radius:999px;margin-right:5px;vertical-align:-1px;background:var(--white)}
+.legend .l-doing::before{background:var(--hi)}.legend .l-done::before{background:var(--ink)}.legend .l-standby::before{background:#ddd}
+
+/* sala */
+.sala{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100% - 60px)}
+.sala .stage{padding:22px 28px}
+.sala .maphead .n{width:72px;height:72px;font-size:24px}
+.sala .maphead h2{font-size:34px}
+.sala .maphead p{font-size:17px}
+.board.big .lbl{font-size:20px}
+.board.big .lbl.round{width:150px;height:150px}
+.salaside{background:var(--ink);color:var(--white);padding:22px;display:grid;gap:18px;align-content:start}
+.salaside .timer{font-size:72px;line-height:1}
+.salaside .timer.running{color:#ff6b5e}
+.salaside .instr{font-size:16px}
+.salaside h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.7}
+.joinbox{background:var(--white);color:var(--ink);border-radius:16px;padding:16px;display:grid;gap:8px;justify-items:center;text-align:center}
+.joinbox .code{font-family:var(--display);font-weight:900;font-size:40px;letter-spacing:.16em}
+#qr img,#qr canvas{width:150px;height:150px}
+
+/* participant */
+.part{max-width:820px;margin:0 auto;padding:16px 16px 60px;display:grid;gap:14px}
+.part .maphead h2{font-size:22px}
+.aliasrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.aliasrow input{flex:1;min-width:160px}
+details.howto{background:var(--white);border:2px solid var(--ink);border-radius:12px;padding:8px 12px}
+details.howto summary{font-weight:800;cursor:pointer}
+.notice{border:2px solid var(--ink);border-radius:12px;padding:10px 12px;background:var(--hi);font-size:14px}
+
+/* memòria */
+.memwrap{max-width:900px;margin:0 auto;padding:22px 20px 80px;display:grid;gap:16px}
+.memtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.memory{background:var(--white);border:3px solid var(--ink);border-radius:8px;padding:clamp(18px,4vw,44px);display:grid;gap:26px}
+.memhead h1{font-size:clamp(26px,4vw,38px);font-weight:900;margin:6px 0 12px}
+.memhead dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:0;font-size:14px}
+.memhead dt{font-weight:800}
+.memhead dd{margin:0}
+.memory h2{font-size:20px;font-weight:900;display:flex;gap:10px;align-items:center;border-bottom:3px solid var(--ink);padding-bottom:6px}
+.memory h2 .n{width:32px;height:32px;border-radius:50%;border:3px solid var(--ink);display:inline-grid;place-items:center;font-size:12px;flex:none}
+.memory h3{font-size:14px;font-weight:800;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.03em}
+.memory ul{margin:0;padding-left:20px}
+.memory li{margin:2px 0}
+.memory table{border-collapse:collapse;width:100%;font-size:14px}
+.memory th,.memory td{border:1px solid var(--rule);padding:6px 8px;text-align:left}
+.memory th{background:var(--panel)}
+.memory .note{background:var(--panel);border-radius:10px;padding:10px 12px;font-size:14px}
+.memory .mphotos{display:flex;gap:8px;flex-wrap:wrap}
+.memory .mphotos img{width:180px;height:135px;object-fit:cover;border:2px solid var(--ink);border-radius:6px}
+.synth{background:var(--hi);border-radius:12px;padding:16px 18px}
+.synth p{margin:6px 0;max-width:68ch}
+.missionline{font-size:18px;background:var(--ink);color:var(--white);border-radius:12px;padding:14px 18px}
+.missionline b{font-family:var(--hand);font-weight:400;font-size:20px}
+
+/* modal i avisos */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.modal[hidden]{display:none}
+.mcard{background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:20px;width:min(720px,100%);max-height:88vh;overflow:auto;display:grid;gap:12px}
+.mcard h3{font-size:20px;font-weight:900}
+.rev{display:grid;gap:6px}
+.revrow{display:grid;grid-template-columns:auto 1fr minmax(120px,200px);gap:8px;align-items:center}
+.revrow input[data-f=text]{font-family:var(--hand);font-size:17px}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.spin{width:36px;height:36px;border-radius:50%;border:4px solid var(--rule);border-top-color:var(--ink);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--white);padding:10px 18px;border-radius:999px;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
+#toast.show{opacity:1}
+
+@media (max-width:1180px){
+  .fac{grid-template-columns:220px minmax(0,1fr)}
+  .side{grid-column:1 / -1;border-left:0;border-top:2px solid var(--ink);grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .sala{grid-template-columns:1fr}
+}
+@media (max-width:820px){
+  .homegrid{grid-template-columns:1fr}
+  .routes{grid-template-columns:1fr}
+  .fac{grid-template-columns:1fr}
+  .rail{border-right:0;border-bottom:2px solid var(--ink);overflow-x:auto}
+  .rail .steps{grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr)}
+  .roles{order:3;width:100%;overflow-x:auto}
+  .roles button{flex:1}
+  .paper{min-height:360px;aspect-ratio:4/5}
+  .lbl.round{width:104px;height:104px}
+  .revrow{grid-template-columns:auto 1fr}
+  .revrow select{grid-column:2}
+  .trow{grid-template-columns:130px minmax(360px,1fr)}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal" class="modal" hidden><div class="mcard" role="dialog" aria-modal="true" id="mcard"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* ============ Configuració ============ */
+const ARTIFACT_URL = "https://claude.ai/artifact/Efnt3Z8sistVF1zu5KhzWy";
+
+const ROUTES = {
+  dt: {
+    name: "Design Thinking", sub: "4 passos · kit d'Enric Segarra",
+    desc: "Resolució creativa de problemes centrada en les persones: definir, empatitzar, conceptualitzar i contrastar.",
+    maps: [
+      { id:"dt1", num:"1", title:"Definició del problema", kind:"canvas",
+        intro:"Exploreu, delimiteu i definiu el problema amb un exercici de mapatge.",
+        roundKinds:["Enunciat del problema","Clúster","Intenció d'innovació"], centerKind:"Enunciat del problema", clusterKinds:["Clúster"],
+        ovalName:"Element o causa",
+        steps:["Escriviu el problema en una etiqueta rodona «Enunciat del problema» i situeu-la al centre del mapa.","Cada persona fa una llista individual d'elements, causes o factors. Una idea per etiqueta oval.","Per torns, cada persona explica i enganxa les seves etiquetes. La resta hi acosta les que s'hi assemblen.","Reordeneu les etiquetes a mesura que apareixen agrupacions i poseu nom a cada clúster amb una etiqueta rodona.","Trieu un clúster i resumiu en una etiqueta rodona la «Intenció d'innovació»."] },
+      { id:"dt2", num:"2", title:"Empatia: perfil de persona", kind:"zones",
+        intro:"Submergiu-vos en la vida de les persones a qui us adreceu per entendre què necessiten.",
+        zones:[{id:"persona",title:"Persona",hint:"Qui és? Nom, edat, context, interessos, preocupacions."},{id:"necessitats",title:"Necessitats",hint:"Beneficis o resultats que li agradaria obtenir."},{id:"impediments",title:"Impediments",hint:"Per què aquestes necessitats no estan cobertes?"},{id:"intencio",title:"Intenció d'innovació revisada",hint:"Reformuleu la intenció des del punt de vista de la persona."}],
+        steps:["Recolliu informació amb entrevistes i observació directa.","Construïu una persona (personatge fictici) per a cada tipus d'usuari.","Llisteu les necessitats i, al costat, els impediments que expliquen per què no es cobreixen.","Afineu la intenció d'innovació del pas 1."] },
+      { id:"dt3a", num:"3a", title:"Conceptualització: I si...?", kind:"canvas",
+        intro:"Genereu idees a partir de preguntes deliberadament absurdes o contràries a l'experiència.",
+        roundKinds:["I si...?"], clusterKinds:["I si...?"], ovalName:"Idea",
+        steps:["Formuleu una pregunta «I si...?» amb una condició absurda o contrària a l'experiència. Escriviu-la en una etiqueta rodona.","Suspeneu el judici i genereu idees en etiquetes ovals per fer realitat aquella afirmació.","Repetiu-ho amb noves preguntes «I si...?»."] },
+      { id:"dt3b", num:"3b", title:"Selecció: test NUF", kind:"nuf", source:"dt3a",
+        intro:"Puntueu cada idea segons si és Nova, Útil i Factible per triar les candidates a prototip.",
+        steps:["Cada persona puntua cada idea de l'1 al 10 en tres criteris, de manera individual i secreta.","Nova: s'ha provat abans? Puntua més si és molt diferent del que ja existeix.","Útil: resol el problema des de la perspectiva de l'usuari?","Factible: es pot fer amb pocs recursos i esforç?","Les idees amb més punts són les candidates per prototipar. Doneu-los forma amb un esbós, un guió o un objecte."] },
+      { id:"dt4", num:"4", title:"Mostra-ho i recull retorn", kind:"zones",
+        intro:"Presenteu els prototips i recolliu el retorn de les persones usuàries.",
+        zones:[{id:"agrada",title:"M'agrada",hint:"Què ha funcionat?"},{id:"noagrada",title:"No m'agrada",hint:"Què no ha convençut?"},{id:"preguntes",title:"Preguntes",hint:"Dubtes que han sorgit."},{id:"desitjos",title:"M'agradaria que...",hint:"Aspectes nous que voldrien veure."},{id:"aprenentatges",title:"Nous aprenentatges",hint:"Insights que deixa la sessió de retorn."}],
+        steps:["Presenteu els prototips amb un relat que destaqui el repte i els beneficis.","Recolliu cada comentari en una etiqueta oval i situeu-lo a la seva zona."] }
+    ]
+  },
+  cd: {
+    name: "Culture Design", sub: "10 mapes · Adhoc Cultura",
+    desc: "Disseny de projectes culturals: del repte i els públics fins al timeline i el seguiment.",
+    maps: [
+      { id:"cd1", num:"1", title:"Verificació del repte", kind:"zones", mission:true,
+        intro:"Comproveu si el repte s'ajusta al que necessita la vostra organització o equipament.",
+        zones:[{id:"objectiu",title:"Objectiu",hint:"Què vull aconseguir?"},{id:"persones",title:"Persones",hint:"A qui li pot interessar la meva proposta cultural?"},{id:"impacte",title:"Impacte social",hint:"A quin repte social vull donar resposta? Quina necessitat soluciona?"},{id:"antecedents",title:"Antecedents",hint:"Què he fet ja? Hi ha algun referent?"},{id:"repte",title:"Repte",hint:"Com el puc concretar més? Quin potencial transformador té? Què el fa únic?"},{id:"equip",title:"Equip",hint:"Quin equip necessito?"}],
+        steps:["Responeu les sis preguntes del checklist, una idea per etiqueta.","Completeu la frase de la missió: Volem [objectiu] per a [persones] amb la finalitat de [impacte]."] },
+      { id:"cd2", num:"2", title:"Mapa d'empatia", kind:"zones",
+        intro:"Entengueu millor el públic objectiu posant-vos a la seva pell.",
+        zones:[{id:"segmenta",title:"Segmenta",hint:"Definiu d'1 a 3 públics. Doneu a cadascun un nom propi, interessos, lloc on viu, estructura familiar."},{id:"veu",title:"Què veu i què sent",hint:"Context social, oferta cultural al seu abast, informació que rep i canals."},{id:"fa",title:"Què fa i què diu",hint:"Discurs, activitats culturals que consumeix, aficions."},{id:"espera",title:"Què espera obtenir",hint:"Necessitats o desitjos que satisfà el projecte i impacte en la seva vida."}],
+        steps:["Segmenteu el públic i doneu-li cara i nom.","Empatitzeu amb cada públic recorrent les tres zones del mapa."] },
+      { id:"cd3", num:"3", title:"Ideació: provocació", kind:"zones",
+        intro:"Preguntes provocadores per pensar el repte des d'angles inesperats.",
+        zones:[{id:"paisos",title:"Solució en altres països",hint:"Com resoldria el projecte problemes en altres països?"},{id:"mon",title:"Canviar el món",hint:"Com pot canviar el món el vostre repte?"},{id:"butxaca",title:"Cabre en una butxaca",hint:"Com seria la proposta si hagués de cabre en una butxaca?"},{id:"argument",title:"Argument",hint:"Què la faria única? Quins són els seus punts forts?"},{id:"aspecte",title:"Aspecte",hint:"Quina forma, color o textura tindria?"},{id:"us",title:"Ús",hint:"Com la faran servir?"}],
+        steps:["Responeu cada pregunta pensant en el vostre repte concret.","Una resposta per etiqueta. Busqueu quantitat abans que qualitat."] },
+      { id:"cd4", num:"4", title:"Ideació: Box Stimuli", kind:"zones", center:"Objecte de referència",
+        intro:"Desglosseu un objecte arbitrari en qualitats i traslladeu-les al repte per crear idees noves.",
+        zones:[{id:"fisiques",title:"Característiques físiques",hint:"Materialitat, color, tecnologia de producció, pes, dimensió..."},{id:"associacions",title:"Associacions lliures",hint:"A què em recorda? Què em suggereix? D'on ve? On ho he vist?"},{id:"comercials",title:"Aspectes comercials",hint:"Argument de venda, públic objectiu, punt de venda, comunicació, preu."},{id:"usos",title:"Usos",hint:"Ús comú, entorn i moment d'ús, accions i cultura relacionades."},{id:"oposades",title:"Qualitats oposades",hint:"Qualitats oposades o alienes a l'objecte. Usos no comuns."}],
+        steps:["Escolliu un objecte arbitrari i escriviu-lo al centre.","Desglosseu-lo en qualitats amb les cinc categories.","Al mapa següent, traslladeu aquestes qualitats al vostre repte per crear idees noves."] },
+      { id:"cd5a", num:"5a", title:"Creació: pluja d'idees i ordenació", kind:"canvas",
+        intro:"Imagineu com voleu que sigui el projecte i ordeneu les idees en núvols.",
+        roundKinds:["Categoria"], clusterKinds:["Categoria"], ovalName:"Idea",
+        steps:["Imagineu com voleu que sigui el projecte cultural. Inspireu-vos en els mapes de provocació i stimuli.","Una idea per etiqueta oval.","Busqueu associacions entre idees semblants i acosteu-les.","Poseu nom a cada núvol d'idees amb una etiqueta rodona de categoria."] },
+      { id:"cd5b", num:"5b", title:"Selecció d'idees", kind:"vote", source:"cd5a", maxVotes:3,
+        intro:"Cada persona té tres punts vermells per triar les idees més interessants per desenvolupar.",
+        steps:["Cada persona té 3 punts vermells.","Voteu les 3 idees més interessants per desenvolupar.","Les idees més votades passen a l'avaluació."] },
+      { id:"cd6", num:"6", title:"Avaluació d'idees", kind:"matrix", source:"cd5a", voteMap:"cd5b",
+        intro:"Situeu les idees guanyadores segons la complexitat i el grau d'innovació.",
+        steps:["Les idees més votades apareixen al mapa.","Situeu-les als eixos: complexitat (horitzontal, de menys a més) i innovació (vertical, de menys a més).","Marqueu la idea finalista, la que compleix millor els requisits."] },
+      { id:"cd7", num:"7", title:"Desenvolupament del projecte", kind:"zones",
+        intro:"Tresor de la innocència: les sis preguntes bàsiques per donar cos a la idea finalista.",
+        zones:[{id:"que",title:"Què?",hint:"Què és i per a què serveix?"},{id:"perque",title:"Per què?",hint:"A quina necessitat respon? Quina és la proposta de valor? Quin impacte social té?"},{id:"com",title:"Com?",hint:"Com funciona o podria funcionar?"},{id:"qui",title:"Qui?",hint:"Qui és l'usuari? Qui hi interactua? Qui hi està implicat?"},{id:"on",title:"On?",hint:"On es fa servir o es realitza? On es fa?"},{id:"quan",title:"Quan?",hint:"Quan es fa servir? Quan s'inicia?"}],
+        steps:["Respongueu les sis preguntes a partir de la idea finalista.","Una resposta per etiqueta. Si apareixen dubtes, anoteu-los a les notes."] },
+      { id:"cd8", num:"8", title:"Les 3P", kind:"zones",
+        intro:"Productes, preparació i processos, i persones necessàries per tirar endavant el projecte.",
+        zones:[{id:"productes",title:"Productes",hint:"Què haureu de fer per tenir èxit? Tot allò físic generat pel repte."},{id:"processos",title:"Preparació i processos",hint:"Què necessitareu a nivell logístic? Materials, recursos, passos, reunions."},{id:"persones3p",title:"Persones",hint:"Equip de treball, col·laboradors, prescriptors..."}],
+        steps:["Llisteu productes, processos i persones, una etiqueta per element.","Aquests elements es convertiran en tasques al timeline."] },
+      { id:"cd9", num:"9", title:"Timeline", kind:"tasks", view:"timeline",
+        intro:"Temporitzeu el projecte i assigneu cada tasca a una persona responsable.",
+        steps:["Situeu les tasques al timeline amb data d'inici i de final.","Assigneu una persona responsable a cada tasca.","Aquest mapa i el de seguiment es modifiquen en paral·lel: comparteixen les mateixes tasques."] },
+      { id:"cd10", num:"10", title:"Seguiment", kind:"tasks", view:"kanban",
+        intro:"Situeu cada tasca segons el seu estat.",
+        steps:["Situeu les tasques segons l'estat: per començar, començada, en stand-by o finalitzada.","Arrossegueu les tasques d'una columna a una altra a mesura que avança el projecte."] }
+    ]
+  }
+};
+const MAPS = {};
+for (const [rk, r] of Object.entries(ROUTES)) for (const m of r.maps) { m.route = rk; MAPS[m.id] = m; }
+const STATUSES = [{id:"todo",t:"Per començar"},{id:"doing",t:"Començada"},{id:"standby",t:"En stand-by"},{id:"done",t:"Finalitzada"}];
+
+/* ============ Utilitats ============ */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = (v, d) => (typeof v === "number" && isFinite(v)) ? v : d;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const now = () => Date.now();
+const rid = (n=6) => { const a="abcdefghjkmnpqrstuvwxyz23456789"; let s=""; for (const x of crypto.getRandomValues(new Uint8Array(n))) s+=a[x%a.length]; return s; };
+const LS = { get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:v; }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+const fmtDate = ms => { try { return new Date(ms).toLocaleDateString("ca-ES",{day:"numeric",month:"short",year:"numeric"}); } catch(e){ return ""; } };
+const pad = n => String(n).padStart(2,"0");
+
+/* ============ Estat ============ */
+let db=null, user=null, room=null, sample=null, assets=null, downloads=null;
+const me = { pid:null, uid:null, isOwner:false, canEdit:false, canWrite:null };
+const S = { view:"home", sid:null, role:null, mapId:null, sessions:[], sessionsLoading:true, session:null, sessionMissing:false,
+  labels:[], votes:[], nuf:[], tasks:[], photos:[], peers:[], profiles:{}, dragging:false, ready:false, err:null, aiImages:false, review:null, newRoute:"cd" };
+const localVotes = {}, localNuf = {};
+let subs = [];
+
+function canWrite(){ return !!db && me.canWrite !== false; }
+function myAlias(){ return LS.get("mt-alias",""); }
+function authorName(l){ return l.alias || (S.profiles[l.by] && S.profiles[l.by].name) || "Participant"; }
+
+/* ============ Escriptures ============ */
+const wq = {};
+function queueWrite(path, fn){
+  const q = wq[path] || (wq[path] = { running:false, next:null });
+  q.next = fn;
+  if (!q.running) drain(q);
+}
+async function drain(q){
+  q.running = true;
+  while (q.next){ const f = q.next; q.next = null; try { await f(); } catch(e){ fail(e); } }
+  q.running = false;
+}
+function fail(e){
+  const code = e && e.code;
+  if (code === "invalid_argument") toast("No s'ha pogut desar. Potser només tens accés de lectura en aquesta sessió.");
+  else if (code === "quota_exceeded") toast("L'espai de dades és ple. Cal eliminar sessions antigues.");
+  else toast("No s'ha pogut desar: " + ((e && (e.message || e.code)) || "error desconegut"));
+}
+function updSession(patch){
+  if (!db || !S.sid) return;
+  const p = "sessions/" + S.sid;
+  queueWrite(p, () => db.doc(p).update(patch));
+}
+function updLabel(id, patch){
+  const p = "labels/" + id;
+  queueWrite(p, () => db.doc(p).update(patch));
+}
+async function addLabel(mapId, d){
+  if (!db) return;
+  const def = MAPS[mapId];
+  let x = d.x, y = d.y;
+  if (def.kind === "canvas" && (x == null || y == null)){
+    if (d.shape === "round" && def.centerKind && d.kind === def.centerKind){ x = 50; y = 50; }
+    else { x = 12 + Math.random()*76; y = 14 + Math.random()*72; }
+  }
+  const doc = { sid:S.sid, map:mapId, text:String(d.text||"").trim().slice(0,200), shape:d.shape||"oval", kind:d.kind||null,
+    zone:d.zone||null, x:x==null?null:Math.round(x*10)/10, y:y==null?null:Math.round(y*10)/10, by:me.pid, alias:myAlias()||null, src:d.src||"digital", createdAt:now() };
+  if (!doc.text) return;
+  try { await db.collection("labels").doc().set(doc); } catch(e){ fail(e); }
+}
+async function addTask(d){
+  if (!db) return;
+  const doc = { sid:S.sid, text:String(d.text||"").trim().slice(0,200), owner:String(d.owner||"").trim().slice(0,80), status:d.status||"todo",
+    start:d.start||"", end:d.end||"", by:me.pid, createdAt:now() };
+  if (!doc.text) return;
+  try { await db.collection("tasks").doc().set(doc); } catch(e){ fail(e); }
+}
+
+/* ============ Dades derivades ============ */
+const labelsOf = mapId => S.labels.filter(l => l.map === mapId).sort((a,b) => num(a.createdAt,0) - num(b.createdAt,0));
+const ovalsOf = mapId => labelsOf(mapId).filter(l => l.shape !== "round");
+function myPicks(map){
+  if (localVotes[map]) return localVotes[map];
+  const d = S.votes.find(v => v.map === map && v.uid === me.pid);
+  return (d && Array.isArray(d.picks)) ? d.picks : [];
+}
+function voteDocs(map){
+  const others = S.votes.filter(v => v.map === map && v.uid !== me.pid);
+  const mine = myPicks(map);
+  return mine.length ? others.concat([{ uid:me.pid, picks:mine }]) : others;
+}
+function voteCounts(map){
+  const c = {};
+  for (const v of voteDocs(map)) for (const lid of (v.picks||[])) c[lid] = (c[lid]||0) + 1;
+  return c;
+}
+function myNuf(map){
+  if (localNuf[map]) return localNuf[map];
+  const d = S.nuf.find(v => v.map === map && v.uid === me.pid);
+  return (d && d.scores) ? JSON.parse(JSON.stringify(d.scores)) : {};
+}
+function nufDocs(map){
+  const others = S.nuf.filter(v => v.map === map && v.uid !== me.pid);
+  const mine = myNuf(map);
+  return Object.keys(mine).length ? others.concat([{ uid:me.pid, scores:mine }]) : others;
+}
+function nufAgg(def){
+  const docs = nufDocs(def.id);
+  const rows = ovalsOf(def.source).map(l => {
+    const vals = { n:[], u:[], f:[] };
+    for (const d of docs){ const s = (d.scores||{})[l.id]; if (!s) continue; for (const k of ["n","u","f"]) if (typeof s[k] === "number") vals[k].push(s[k]); }
+    const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+    const n = avg(vals.n), u = avg(vals.u), f = avg(vals.f);
+    const total = (n||0)+(u||0)+(f||0);
+    return { l, n, u, f, total, resp: Math.max(vals.n.length, vals.u.length, vals.f.length) };
+  });
+  rows.sort((a,b) => b.total - a.total);
+  return { rows, respondents: docs.filter(d => Object.keys(d.scores||{}).length).length };
+}
+function matrixItems(def){
+  const src = ovalsOf(def.source);
+  const c = voteCounts(def.voteMap);
+  const voted = src.filter(l => (c[l.id]||0) > 0).sort((a,b) => (c[b.id]||0) - (c[a.id]||0));
+  return { items: voted.length ? voted : src, counts: c, fromVotes: voted.length > 0 };
+}
+function clusterOf(def, labels){
+  // assigna cada etiqueta oval a la rodona de clúster més propera
+  const centers = labels.filter(l => l.shape === "round" && (def.clusterKinds||[]).includes(l.kind));
+  const map = {};
+  for (const o of labels.filter(l => l.shape !== "round")){
+    let best = null, bd = 1e9;
+    for (const c of centers){ const d = Math.hypot(num(o.x,50)-num(c.x,50), (num(o.y,50)-num(c.y,50))*0.625); if (d < bd){ bd = d; best = c; } }
+    map[o.id] = (best && bd < 28) ? best.id : null;
+  }
+  return { centers, map };
+}
+function countFor(d){
+  const ph = S.photos.filter(p => p.map === d.id).length;
+  let t = "";
+  if (d.kind === "zones" || d.kind === "canvas") t = labelsOf(d.id).length + " etiquetes";
+  else if (d.kind === "vote") t = Object.values(voteCounts(d.id)).reduce((a,b)=>a+b,0) + " punts";
+  else if (d.kind === "nuf") t = nufAgg(d).respondents + " respostes";
+  else if (d.kind === "matrix") t = matrixItems(d).items.length + " idees";
+  else if (d.kind === "tasks") t = S.tasks.length + " tasques";
+  return t + (ph ? " · " + ph + (ph === 1 ? " foto" : " fotos") : "");
+}
+function timeLeft(){
+  const t = (S.session && S.session.timer) || {};
+  if (t.endsAt) return Math.max(0, (t.endsAt - now())/1000);
+  return num(t.remaining, num(t.duration, 300));
+}
+
+/* ============ Pintat ============ */
+function isBusy(el){
+  const a = document.activeElement;
+  if (a && a !== document.body && el.contains(a) && (a.matches("input,textarea,select") || a.isContentEditable)) return true;
+  if (S.dragging && el.contains($(".dragging"))) return true;
+  return false;
+}
+function paint(el, html){
+  if (!el) return;
+  if (el._html === html) return;
+  if (isBusy(el)){ el.dataset.pending = "1"; return; }
+  el.innerHTML = html; el._html = html; delete el.dataset.pending;
+}
+
+function render(){
+  const app = $("#app");
+  if (S.view === "home"){
+    if (app.dataset.key !== "home"){ app.dataset.key = "home"; app.innerHTML = homeShell(); app._qr = null; paint($("#ns-maps"), mapChecks(S.newRoute)); }
+    paint($("#banner"), bannerHtml());
+    paint($("#sessions"), sessionsList());
+    return;
+  }
+  const s = S.session;
+  if (!s){
+    const k = "load|" + S.sid + "|" + S.sessionMissing + "|" + !!db;
+    if (app.dataset.key !== k){ app.dataset.key = k; app.innerHTML = loadingHtml(); }
+    return;
+  }
+  const role = S.role || "part";
+  const mapId = role === "fac" ? S.mapId : (role === "mem" ? "" : s.current);
+  const key = ["s", S.sid, role, mapId].join("|");
+  if (app.dataset.key !== key){ app.dataset.key = key; app.innerHTML = sessionShell(role, MAPS[mapId]); afterShell(role); }
+  paint($("#topdyn"), topDyn());
+  if (role === "mem"){ paint($("#memory"), memoryHtml()); paint($("#memtools"), memTools()); ensureProfiles(); return; }
+  const def = MAPS[mapId];
+  if (!def) return;
+  paint($("#rail"), railHtml());
+  paint($("#mapmeta"), mapMeta(def, role));
+  paint($("#board"), boardHtml(def, role));
+  paint($("#side"), role === "fac" ? sideFac(def) : role === "sala" ? sideSala(def) : "");
+  paint($("#pnotice"), role === "part" ? partNotice(def) : "");
+  tick();
+  ensureProfiles();
+}
+
+const requested = new Set();
+function ensureProfiles(){
+  if (!user) return;
+  const ids = [...new Set(S.labels.map(l => l.by).filter(x => x && !String(x).startsWith("local-") && !requested.has(x)))];
+  if (!ids.length) return;
+  ids.forEach(i => requested.add(i));
+  user.profiles(ids).then(ps => { Object.assign(S.profiles, ps || {}); render(); }).catch(()=>{});
+}
+
+/* ---------- inici ---------- */
+function homeShell(){
+  return `
+  <header class="top"><div class="brand"><span class="mark" aria-hidden="true"></span><div><b>Manual Thinking</b><span>en línia · prototip de validació</span></div></div></header>
+  <main class="home">
+    <section class="intro">
+      <h1>Prepara, facilita i documenta sessions col·lectives</h1>
+      <p>El mapa bessó digital del sistema Manual Thinking. El mapa físic continua al centre de la sala; aquí hi connecteu les persones en remot, guieu cada pas i en guardeu la memòria del procés.</p>
+    </section>
+    <div id="banner"></div>
+    <div class="homegrid">
+      <section class="card">
+        <h2>Nova sessió</h2>
+        <form data-form="new" class="field" style="gap:16px">
+          <label class="field"><span>Títol de la sessió</span><input name="title" id="ns-title" required maxlength="120" placeholder="Taller amb l'equip del centre cívic"></label>
+          <label class="field"><span>Repte de partida</span><textarea name="repte" id="ns-repte" rows="2" maxlength="400" placeholder="Com podem apropar la programació cultural al veïnat jove?"></textarea></label>
+          <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="k" style="margin-bottom:6px">Recorregut</legend>
+            <div class="routes">
+              ${Object.entries(ROUTES).map(([k,r]) => `<label class="rcard"><input type="radio" name="route" value="${k}" data-act="route-pick" ${k===S.newRoute?"checked":""}><b>${esc(r.name)}</b><small>${esc(r.sub)}</small><span style="font-size:13px">${esc(r.desc)}</span></label>`).join("")}
+            </div>
+          </fieldset>
+          <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="k" style="margin-bottom:6px">Mapes que fareu servir</legend><div id="ns-maps"></div></fieldset>
+          <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="k" style="margin-bottom:6px">Format</legend>
+            <div class="modes">
+              <label><input type="radio" name="mode" value="directe" checked><span><b>Sessió en directe</b><small>Sala i persones en remot treballant alhora.</small></span></label>
+              <label><input type="radio" name="mode" value="documentacio"><span><b>Documentar un procés fet</b><small>Pugeu fotos dels mapes i transcriviu-les amb IA.</small></span></label>
+            </div>
+          </fieldset>
+          <div><button class="btn pri" type="submit">Crea la sessió</button></div>
+        </form>
+      </section>
+      <section class="card">
+        <h2>Sessions</h2>
+        <form data-form="join" class="joinform"><input name="code" maxlength="12" placeholder="Codi de sessió" aria-label="Codi de sessió" autocomplete="off"><button class="btn" type="submit">Entra</button></form>
+        <div id="sessions"></div>
+      </section>
+    </div>
+  </main>`;
+}
+function mapChecks(route){
+  return `<div class="mapchecks">${ROUTES[route].maps.map(m => `<label><input type="checkbox" name="maps" value="${m.id}" checked><span class="n">${esc(m.num)}</span>${esc(m.title)}</label>`).join("")}</div>`;
+}
+function bannerHtml(){
+  if (!S.ready) return "";
+  if (!db) return `<div class="banner"><b>Mode només lectura.</b> Per crear i compartir sessions cal obrir aquesta eina a claude.ai amb la sessió iniciada.</div>`;
+  if (me.canWrite === false) return `<div class="banner"><b>Tens accés de lectura.</b> Demana a la persona propietària que et doni accés de col·laboració per poder afegir etiquetes.</div>`;
+  return "";
+}
+function sessionsList(){
+  if (!S.ready) return `<p class="muted">Connectant…</p>`;
+  if (!db) return `<p class="muted">Les sessions apareixeran aquí quan l'eina pugui desar dades.</p>`;
+  if (S.sessionsLoading) return `<p class="muted">Carregant sessions…</p>`;
+  if (!S.sessions.length) return `<p class="muted">Encara no hi ha cap sessió. Crea'n una amb el formulari i comparteix el codi amb les persones participants.</p>`;
+  return `<div class="slist">${S.sessions.map(s => {
+    const r = ROUTES[s.route] || { name:"" };
+    return `<article class="sitem"><div class="h"><div><b>${esc(s.title||"Sessió sense títol")}</b><br><small>${esc(r.name)} · ${s.mode==="documentacio"?"Documentació":"En directe"} · ${esc(fmtDate(s.createdAt))}</small></div><span class="pill codepill">${esc(String(s.id).toUpperCase())}</span></div>
+    <div class="acts"><a class="btn sm pri" href="#s-${esc(s.id)}" data-act="enter" data-sid="${esc(s.id)}" data-role="fac">Facilita</a><a class="btn sm" href="#s-${esc(s.id)}" data-act="enter" data-sid="${esc(s.id)}" data-role="part">Participa</a><a class="btn sm" href="#s-${esc(s.id)}" data-act="enter" data-sid="${esc(s.id)}" data-role="mem">Memòria</a></div></article>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- sessió ---------- */
+function loadingHtml(){
+  const back = `<header class="top"><a class="back" href="#inici">Sessions</a></header>`;
+  if (S.ready && !db) return back + `<main class="home"><div class="banner">Aquesta vista no pot llegir sessions. Obre l'eina a claude.ai amb la sessió iniciada.</div></main>`;
+  if (S.sessionMissing) return back + `<main class="home"><div class="card"><h2>No hem trobat la sessió ${esc(String(S.sid).toUpperCase())}</h2><p>Comprova el codi o torna a la llista de sessions.</p><div><a class="btn pri" href="#inici">Torna a l'inici</a></div></div></main>`;
+  return back + `<main class="home"><p class="muted">Carregant la sessió…</p></main>`;
+}
+function sessionShell(role, def){
+  const s = S.session, r = ROUTES[s.route] || { name:"" };
+  const tabs = [["fac","Facilitació"],["sala","Sala"],["part","Participant"],["mem","Memòria"]];
+  const head = `<header class="top"><a class="back" href="#inici">Sessions</a>
+    <div class="stitle"><b>${esc(s.title||"Sessió")}</b><span>${esc(r.name)} · ${s.mode==="documentacio"?"Documentació d'un procés fet":"Sessió en directe"}</span></div>
+    <nav class="roles" role="tablist" aria-label="Vista">${tabs.map(([k,t]) => `<button role="tab" aria-selected="${k===role}" data-act="role" data-role="${k}">${t}</button>`).join("")}</nav>
+    <div id="topdyn"></div></header>`;
+  if (role === "mem") return head + `<main class="memwrap"><div id="memtools" class="memtools"></div><article id="memory" class="memory"></article></main>`;
+  if (!def) return head + `<main class="home"><p>Aquesta sessió no té mapes.</p></main>`;
+  if (role === "fac") return head + `<div class="fac"><aside id="rail" class="rail" aria-label="Mapes"></aside>
+    <main class="stage"><div id="mapmeta"></div><div id="composer">${composerHtml(def)}</div><div><div id="board" class="board"></div>${mtbar(def)}</div></main>
+    <aside id="side" class="side"></aside></div>`;
+  if (role === "sala") return head + `<div class="sala"><main class="stage"><div id="mapmeta"></div><div><div id="board" class="board big"></div>${mtbar(def)}</div></main>
+    <aside class="salaside"><div><h3>Temps</h3><div class="timer" data-timer>--:--</div></div><div id="side"></div>
+    <div class="joinbox"><span class="k">Uneix-t'hi des del mòbil</span><span class="code">${esc(String(S.sid).toUpperCase())}</span><div id="qr"></div><small>Obre Manual Thinking en línia i entra aquest codi.</small></div></aside></div>`;
+  return head + `<main class="part"><div id="mapmeta"></div><div id="pnotice"></div>
+    <div class="aliasrow"><label for="alias">Signes com</label><input id="alias" data-act="alias" value="${esc(myAlias())}" placeholder="El teu nom o àlies" maxlength="40"></div>
+    <div id="composer">${composerHtml(def)}</div><div><div id="board" class="board"></div>${mtbar(def)}</div></main>`;
+}
+function afterShell(role){
+  if (role === "sala" && ARTIFACT_URL && window.QRCode){
+    const el = $("#qr"); if (el){ try { new QRCode(el, { text: ARTIFACT_URL + "#s-" + S.sid, width:300, height:300, correctLevel: QRCode.CorrectLevel.M }); } catch(e){} }
+  }
+}
+function mtbar(def){ return `<div class="mtbar"><span>${esc(ROUTES[def.route].name.toUpperCase())} · MAPA ${esc(def.num)}: <b>${esc(def.title.toUpperCase())}</b></span><b>Manual Thinking®</b></div>`; }
+function topDyn(){
+  const n = S.peers.filter(p => p.presence && p.presence.sid === S.sid).length;
+  let h = room ? `<span class="pill"><span class="dot"></span>${n} ${n===1?"connectada":"connectades"}</span>` : "";
+  h += `<span class="pill codepill">${esc(String(S.sid).toUpperCase())}</span>`;
+  return h;
+}
+function railHtml(){
+  const s = S.session;
+  return `<h3 class="k">Mapes</h3><ol class="steps">${s.maps.filter(id => MAPS[id]).map(id => { const d = MAPS[id]; const live = id === s.current && s.mode !== "documentacio";
+    return `<li><button class="step ${id===S.mapId?"sel":""} ${live?"live":""}" data-act="pick-map" data-map="${id}" aria-current="${id===S.mapId?"step":"false"}"><span class="n">${esc(d.num)}</span><span class="tt">${esc(d.title)}<small>${esc(countFor(d))}</small></span>${live?"<em>A la sala</em>":""}</button></li>`; }).join("")}</ol>`;
+}
+function mapMeta(def, role){
+  const s = S.session;
+  const live = role === "fac" && def.id === s.current && s.mode !== "documentacio" ? `<span class="chip">A la sala</span>` : "";
+  const doc = role === "fac" && s.mode === "documentacio" ? `<span class="chip doc">Documentació</span>` : "";
+  let h = `<div class="maphead"><span class="n">${esc(def.num)}</span><div><h2>${esc(def.title)}${live}${doc}</h2><p>${esc(def.intro)}</p></div></div>`;
+  if (role === "part") h += `<details class="howto"><summary>Instruccions d'aquest mapa</summary><ol class="instr">${def.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol></details>`;
+  if (role === "part" && s.mode !== "documentacio") h += `<div class="aliasrow"><span class="k">Temps</span><span class="timer" data-timer style="font-size:26px">--:--</span></div>`;
+  return h;
+}
+function partNotice(def){
+  if (!canWrite()) return `<div class="notice">Tens accés de lectura. Per afegir etiquetes cal accés de col·laboració a l'eina.</div>`;
+  return `<div class="notice">Segueixes el mapa que la persona facilitadora projecta a la sala. Quan canviï de mapa, aquesta pantalla canviarà sola.</div>`;
+}
+function composerHtml(def){
+  if (!def || ["vote","nuf","matrix"].includes(def.kind)) return "";
+  if (def.kind === "tasks") return `<form class="composer task" data-form="task"><input name="text" required maxlength="200" placeholder="Nova tasca" aria-label="Tasca"><input name="owner" maxlength="80" placeholder="Responsable" aria-label="Responsable"><input type="date" name="start" aria-label="Data d'inici"><input type="date" name="end" aria-label="Data de final"><button class="btn pri" type="submit">Afegeix</button></form>`;
+  let sel = "";
+  if (def.kind === "zones") sel = `<select name="zone" aria-label="Zona del mapa">${def.zones.map(z => `<option value="${z.id}">${esc(z.title)}</option>`).join("")}</select>`;
+  if (def.kind === "canvas") sel = `<select name="shape" aria-label="Tipus d'etiqueta"><option value="oval">${esc(def.ovalName||"Idea")} (oval)</option>${def.roundKinds.map(k => `<option value="round:${esc(k)}">${esc(k)} (rodona)</option>`).join("")}</select>`;
+  return `<form class="composer" data-form="label" data-map="${def.id}"><input name="text" required maxlength="140" placeholder="Una idea per etiqueta" aria-label="Text de l'etiqueta" autocomplete="off">${sel}<button class="btn pri" type="submit">Enganxa</button></form>`;
+}
+
+/* ---------- panells laterals ---------- */
+function sideFac(def){
+  const s = S.session, docMode = s.mode === "documentacio";
+  const cur = MAPS[s.current];
+  const live = docMode ? "" : `<section class="blk"><h3>A la sala</h3>
+    ${def.id === s.current ? `<p class="ok">Aquest és el mapa que veu la sala i les persones connectades.</p>` : `<button class="btn pri" data-act="go-live" data-map="${def.id}">Projecta aquest mapa</button><p class="muted" style="margin:0">Ara a la sala: ${cur?esc(cur.num+" · "+cur.title):"cap"}</p>`}
+    <div class="timer" data-timer>--:--</div>
+    <div class="tbtns">${[3,5,10,15].map(m => `<button class="btn sm" data-act="t-set" data-min="${m}">${m} min</button>`).join("")}</div>
+    <div class="tbtns"><button class="btn sm pri" data-act="t-start">Inicia</button><button class="btn sm" data-act="t-pause">Pausa</button><button class="btn sm" data-act="t-reset">Reinicia</button></div></section>`;
+  const instr = `<section class="blk"><h3>Instruccions</h3><ol class="instr">${def.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol></section>`;
+  const notes = `<section class="blk"><h3><label for="notes">Notes de facilitació</label></h3><textarea id="notes" rows="4" data-act="notes" data-map="${def.id}" placeholder="Què ha passat en aquest mapa? Tensions, acords, citacions...">${esc((s.notes||{})[def.id]||"")}</textarea></section>`;
+  const photos = `<section class="blk"><h3>Fotos del mapa físic</h3>${photosHtml(def)}</section>`;
+  return docMode ? photos + instr + notes : live + instr + photos + notes;
+}
+function photosHtml(def){
+  const P = S.photos.filter(p => p.map === def.id).sort((a,b) => num(a.createdAt,0) - num(b.createdAt,0));
+  const canT = sample && S.aiImages && ["zones","canvas","tasks"].includes(def.kind);
+  let h = P.length ? `<div class="photos">${P.map(p => `<figure><img src="${esc(p.url || ("/_blob/" + p.assetId))}" alt="Foto del mapa ${esc(def.title)}" loading="lazy"><figcaption>
+      ${canT ? `<button class="btn sm pri" data-act="transcribe" data-pid="${esc(p.id)}">${p.imported ? "Torna a transcriure" : "Transcriu amb IA"}</button>` : ""}
+      ${p.imported ? `<small>${p.imported} etiquetes importades</small>` : ""}
+      ${assets ? `<button class="btn sm ghost" data-act="del-photo" data-pid="${esc(p.id)}">Elimina</button>` : ""}</figcaption></figure>`).join("")}</div>`
+    : `<p class="muted" style="margin:0">Fotografieu el mapa físic per incorporar-lo a la memòria${canT ? " i transcriure'n les etiquetes" : ""}.</p>`;
+  h += assets ? `<label class="btn up"><input type="file" accept="image/*" data-act="upload" data-map="${def.id}" hidden>Puja una foto</label>` : `<p class="muted" style="margin:0;font-size:13px">Per pujar fotos cal ser propietari o editor de l'eina.</p>`;
+  if (sample === null || !S.aiImages) h += `<p class="muted" style="margin:0;font-size:13px">La transcripció amb IA no està disponible en aquesta vista.</p>`;
+  return h;
+}
+function sideSala(def){
+  return `<div><h3>Instruccions</h3><ol class="instr">${def.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`;
+}
+
+/* ---------- taulers ---------- */
+function boardHtml(def, role){
+  const ro = role === "sala" || !canWrite();
+  switch (def.kind){
+    case "zones": return zonesBoard(def, ro, role);
+    case "canvas": return canvasBoard(def, ro);
+    case "vote": return voteBoard(def, ro, role);
+    case "matrix": return matrixBoard(def, ro, role);
+    case "nuf": return nufBoard(def, ro, role);
+    case "tasks": return def.view === "timeline" ? timelineBoard(ro) : kanbanBoard(ro);
+  }
+  return "";
+}
+function labelHtml(l, o){
+  o = o || {};
+  const round = l.shape === "round";
+  const can = !o.ro && canWrite();
+  const style = o.abs ? ` style="left:${num(o.x!=null?o.x:l.x,50)}%;top:${num(o.y!=null?o.y:l.y,50)}%"` : "";
+  return `<div class="lbl ${round?"round":"oval"} ${l.src==="foto"?"foto":""} ${o.cls||""}" data-lid="${esc(l.id)}"${style}${o.drag && can ? ' draggable="true"' : ""}>`
+    + (round && l.kind ? `<span class="k">${esc(l.kind)}</span>` : "")
+    + `<span class="t"${can && !o.noedit ? " data-edit" : ""}>${esc(l.text)}</span>`
+    + (o.meta === false ? "" : `<span class="by">${esc(o.meta || authorName(l))}${l.src==="foto"?" · foto":""}</span>`)
+    + (can && !o.nodel ? `<button class="x" data-act="del-label" data-lid="${esc(l.id)}" aria-label="Elimina l'etiqueta">×</button>` : "")
+    + (o.extra || "") + `</div>`;
+}
+function zonesBoard(def, ro, role){
+  const s = S.session, L = labelsOf(def.id);
+  const editTop = !ro && role === "fac";
+  let h = `<div class="zones">`;
+  if (def.mission){
+    const m = s.mission || {};
+    const f = (k, ph) => editTop ? `<input data-act="mission" data-k="${k}" value="${esc(m[k]||"")}" placeholder="${ph}" aria-label="${ph}">` : `<b class="hand">${esc(m[k]) || "…"}</b>`;
+    h += `<div class="mission"><span class="k">Missió del projecte</span><p class="sentence">Volem ${f("objectiu","objectiu del projecte")} per a ${f("persones","persones")} amb la finalitat de ${f("impacte","impacte")}.</p></div>`;
+  }
+  if (def.center){
+    const v = (s.centers || {})[def.id] || "";
+    h += `<div class="center-ring"><span class="k">${esc(def.center)}</span>${editTop ? `<input data-act="center" data-map="${def.id}" value="${esc(v)}" placeholder="Escriviu l'objecte aquí" aria-label="${esc(def.center)}">` : `<b class="hand">${esc(v) || "…"}</b>`}</div>`;
+  }
+  h += `<div class="zgrid">`;
+  for (const z of def.zones){
+    const zl = L.filter(l => l.zone === z.id);
+    h += `<section class="zone" data-zone="${z.id}"><header><h4>${esc(z.title)}</h4><p>${esc(z.hint)}</p></header><div class="zl">${zl.map(l => labelHtml(l, { ro, drag:true })).join("") || `<span class="empty">Encara cap etiqueta</span>`}</div></section>`;
+  }
+  const orphan = L.filter(l => !def.zones.some(z => z.id === l.zone));
+  if (orphan.length) h += `<section class="zone" data-zone=""><header><h4>Sense zona</h4><p>Arrossegueu-les a la zona que els toca.</p></header><div class="zl">${orphan.map(l => labelHtml(l, { ro, drag:true })).join("")}</div></section>`;
+  return h + `</div></div>`;
+}
+function canvasBoard(def, ro){
+  const L = labelsOf(def.id);
+  const { centers, map } = clusterOf(def, L);
+  const center = def.centerKind ? L.find(l => l.shape === "round" && l.kind === def.centerKind) : null;
+  const byId = Object.fromEntries(L.map(l => [l.id, l]));
+  let lines = "";
+  const ln = (a, b) => `<line x1="${num(a.x,50)}" y1="${num(a.y,50)}" x2="${num(b.x,50)}" y2="${num(b.y,50)}"/>`;
+  for (const [oid, cid] of Object.entries(map)) if (cid) lines += ln(byId[oid], byId[cid]);
+  if (center) for (const c of centers) lines += ln(center, c);
+  return `<div class="paper ${ro?"ro":""}" data-map="${def.id}" data-mode="canvas"><svg class="wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
+    ${L.map(l => labelHtml(l, { abs:true, ro })).join("")}
+    ${L.length ? "" : `<p class="paper-empty">Afegiu etiquetes amb el formulari. Arrossegueu-les per agrupar-les: les ovals s'uneixen soles a la rodona més propera.</p>`}</div>`;
+}
+function voteBoard(def, ro, role){
+  const src = ovalsOf(def.source);
+  if (!src.length) return `<div class="banner">Primer cal generar idees al mapa ${esc(MAPS[def.source].num)} «${esc(MAPS[def.source].title)}».</div>`;
+  const counts = voteCounts(def.id), mine = myPicks(def.id), left = def.maxVotes - mine.length;
+  const voters = voteDocs(def.id).filter(v => (v.picks||[]).length).length;
+  const list = role === "sala" ? src.slice().sort((a,b) => (counts[b.id]||0) - (counts[a.id]||0)) : src;
+  const bar = `<div class="votebar">${ro ? "" : `<span class="mydots" aria-label="Punts disponibles">${"<i></i>".repeat(Math.max(0,left))}${'<i class="used"></i>'.repeat(mine.length)}</span><b>Et ${left===1?"queda":"queden"} ${left} ${left===1?"punt":"punts"}</b>`}<span class="muted">${voters} ${voters===1?"persona ha votat":"persones han votat"}</span></div>`;
+  return bar + `<div class="vgrid" style="margin-top:12px">${list.map(l => { const c = counts[l.id]||0, on = mine.includes(l.id);
+    return `<div class="vcard ${on?"on":""}"><div class="lbl oval"><span class="t">${esc(l.text)}</span></div><div class="dots" aria-label="${c} punts">${"<i></i>".repeat(c)}</div>
+      ${ro ? `<span class="cnt">${c} ${c===1?"punt":"punts"}</span>` : `<button class="btn sm ${on?"":"pri"}" data-act="vote" data-map="${def.id}" data-lid="${esc(l.id)}" ${!on && left<=0 ? "disabled" : ""}>${on ? "Treu el punt" : "Posa un punt"}</button>`}</div>`; }).join("")}</div>`;
+}
+function matrixBoard(def, ro, role){
+  const { items, counts, fromVotes } = matrixItems(def);
+  if (!items.length) return `<div class="banner">Encara no hi ha idees. Genereu-les al mapa ${esc(MAPS[def.source].num)} i voteu-les al ${esc(MAPS[def.voteMap].num)}.</div>`;
+  const fin = S.session.finalIdea;
+  let i = 0;
+  const lbls = items.map(l => {
+    const pend = l.mx == null || l.my == null;
+    const x = pend ? 10 + (i % 4) * 9 : l.mx, y = pend ? 14 + Math.floor(i / 4) * 16 : l.my; i++;
+    const star = !ro && role === "fac" ? `<button class="star" data-act="final" data-lid="${esc(l.id)}">${fin===l.id?"Finalista":"Tria"}</button>` : (fin===l.id ? `<span class="star">Finalista</span>` : "");
+    return labelHtml(l, { abs:true, ro, x, y, cls:(pend?"pending ":"") + (fin===l.id?"final":""), nodel:true, noedit:true, meta: counts[l.id] ? counts[l.id] + (counts[l.id]===1?" punt":" punts") : "sense vots", extra: star });
+  }).join("");
+  return `${fromVotes ? "" : `<p class="notice" style="margin:0 0 10px">Encara no hi ha vots al mapa ${esc(MAPS[def.voteMap].num)}: es mostren totes les idees.</p>`}
+  <div class="matrix"><div class="ylab">Innovació ↑</div><div class="paper plane ${ro?"ro":""}" data-map="${def.id}" data-mode="matrix">
+    <span class="q q1">Innovadora i senzilla</span><span class="q q2">Innovadora i complexa</span><span class="q q3">Poc innovadora i senzilla</span><span class="q q4">Poc innovadora i complexa</span>${lbls}</div>
+    <div class="xlab">Complexitat →</div></div>`;
+}
+function nufBoard(def, ro, role){
+  const src = ovalsOf(def.source);
+  if (!src.length) return `<div class="banner">Primer cal generar idees al mapa ${esc(MAPS[def.source].num)} «${esc(MAPS[def.source].title)}».</div>`;
+  const revealed = !!((S.session.reveal || {})[def.id]);
+  const agg = nufAgg(def);
+  const f1 = v => v == null ? "–" : (Math.round(v*10)/10).toLocaleString("ca-ES");
+  const aggTable = `<div class="tablewrap"><table class="nuf"><thead><tr><th>Idea</th><th class="num">Nova</th><th class="num">Útil</th><th class="num">Factible</th><th class="num">Total</th><th class="num">Respostes</th></tr></thead><tbody>
+    ${agg.rows.map((r, i) => `<tr class="${i<3 && r.total>0 ? "top" : ""}"><td class="idea">${esc(r.l.text)}</td><td class="num">${f1(r.n)}</td><td class="num">${f1(r.u)}</td><td class="num">${f1(r.f)}</td><td class="num"><b>${f1(r.total||null)}</b></td><td class="num">${r.resp}</td></tr>`).join("")}</tbody></table></div>`;
+  const head = `<div class="nufhead"><span><b>${agg.respondents}</b> ${agg.respondents===1?"persona ha puntuat":"persones han puntuat"} · mitjanes per criteri</span>${role === "fac" && !ro ? `<button class="btn sm ${revealed?"":"pri"}" data-act="reveal" data-map="${def.id}">${revealed ? "Amaga els resultats" : "Mostra els resultats a tothom"}</button>` : ""}</div>`;
+  if (role === "fac") return `<div style="display:grid;gap:10px">${head}${aggTable}<details class="howto"><summary>Puntua tu també</summary>${nufForm(def, src, ro)}</details></div>`;
+  if (role === "sala") return `<div style="display:grid;gap:10px">${head}${revealed ? aggTable : `<div class="banner">Puntuació individual i secreta en curs. Els resultats es mostraran quan la persona facilitadora ho decideixi.</div>`}</div>`;
+  return `<div style="display:grid;gap:12px">${nufForm(def, src, ro)}${revealed ? `<h3>Resultats del grup</h3>${aggTable}` : ""}</div>`;
+}
+function nufForm(def, src, ro){
+  const mine = myNuf(def.id);
+  const sel = (lid, k) => { const v = (mine[lid]||{})[k];
+    return `<select data-act="nuf" data-map="${def.id}" data-lid="${esc(lid)}" data-k="${k}" aria-label="${{n:"Nova",u:"Útil",f:"Factible"}[k]}" ${ro?"disabled":""}><option value="">–</option>${Array.from({length:10},(_,i)=>i+1).map(n => `<option ${v===n?"selected":""}>${n}</option>`).join("")}</select>`; };
+  return `<div class="tablewrap"><table class="nuf"><thead><tr><th>Idea</th><th class="num">Nova</th><th class="num">Útil</th><th class="num">Factible</th><th class="num">Total</th></tr></thead><tbody>
+    ${src.map(l => { const s = mine[l.id]||{}; const t = (s.n||0)+(s.u||0)+(s.f||0);
+      return `<tr><td class="idea">${esc(l.text)}</td><td class="num">${sel(l.id,"n")}</td><td class="num">${sel(l.id,"u")}</td><td class="num">${sel(l.id,"f")}</td><td class="num"><b>${t||"–"}</b></td></tr>`; }).join("")}</tbody></table></div>`;
+}
+function taskMeta(t){ const d = [t.start, t.end].filter(Boolean).map(x => { const [y,m,dd] = x.split("-"); return dd+"/"+m; }).join(" → "); return [t.owner, d].filter(Boolean).join(" · "); }
+function kanbanBoard(ro){
+  const T = S.tasks.slice().sort((a,b) => num(a.createdAt,0) - num(b.createdAt,0));
+  return `<div class="kanban">${STATUSES.map(st => { const c = T.filter(t => (t.status||"todo") === st.id);
+    return `<section class="kcol" data-status="${st.id}"><h4>${st.t}<span>${c.length}</span></h4>${c.map(t => `<div class="tcard" data-tid="${esc(t.id)}" ${ro?"":'draggable="true"'}><b>${esc(t.text)}</b>${taskMeta(t)?`<small>${esc(taskMeta(t))}</small>`:""}
+      ${ro ? "" : `<select data-act="task-status" data-tid="${esc(t.id)}" aria-label="Estat">${STATUSES.map(x => `<option value="${x.id}" ${x.id===(t.status||"todo")?"selected":""}>${x.t}</option>`).join("")}</select><button class="x" data-act="del-task" data-tid="${esc(t.id)}" aria-label="Elimina la tasca">×</button>`}</div>`).join("") || `<span class="empty">Cap tasca</span>`}</section>`; }).join("")}</div>`;
+}
+const dUTC = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); return m ? Date.UTC(+m[1], +m[2]-1, +m[3]) : null; };
+function timelineBoard(ro){
+  const T = S.tasks.slice();
+  if (!T.length) return `<div class="banner">Encara no hi ha tasques. Afegiu-les amb el formulari indicant responsable i dates.</div>`;
+  const DAY = 86400000;
+  const dated = T.map(t => { const a = dUTC(t.start) ?? dUTC(t.end), b = dUTC(t.end) ?? dUTC(t.start); return { t, a, b: (a!=null && b!=null && b < a) ? a : b }; }).filter(x => x.a != null).sort((x,y) => x.a - y.a);
+  const undated = T.filter(t => dUTC(t.start) == null && dUTC(t.end) == null);
+  let h = `<div class="timeline">`;
+  if (dated.length){
+    let min = Math.min(...dated.map(x => x.a)), max = Math.max(...dated.map(x => x.b)) + DAY;
+    const dow = (new Date(min).getUTCDay() + 6) % 7; min -= dow*DAY;
+    const weeks = Math.max(1, Math.ceil((max - min) / (7*DAY))); const span = weeks*7*DAY;
+    h += `<div class="trow thead"><div>Tasca</div><div class="ttrack" style="--w:${weeks}">${Array.from({length:weeks},(_,i) => { const d = new Date(min + i*7*DAY); return `<span>${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}</span>`; }).join("")}</div></div>`;
+    h += dated.map(({t,a,b}) => `<div class="trow"><div class="tname"><b>${esc(t.text)}</b><small>${esc(t.owner||"Sense responsable")} · ${esc((STATUSES.find(s=>s.id===(t.status||"todo"))||STATUSES[0]).t)}</small></div><div class="ttrack" style="--w:${weeks}"><span class="bar s-${esc(t.status||"todo")}" style="left:${((a-min)/span*100).toFixed(2)}%;width:${Math.max(1.5,((b-a+DAY)/span*100)).toFixed(2)}%" title="${esc(taskMeta(t))}"></span></div></div>`).join("");
+    h += `<div class="legend">${STATUSES.map(s => `<span class="l-${s.id}">${s.t}</span>`).join("")}</div>`;
+  }
+  if (undated.length) h += `<div><h4 class="k" style="margin:8px 0 4px">Sense dates</h4><ul style="margin:0;padding-left:18px">${undated.map(t => `<li><span class="hand" style="font-size:16px">${esc(t.text)}</span> <small class="muted">${esc(t.owner||"")}</small></li>`).join("")}</ul></div>`;
+  return h + `</div>`;
+}
+
+/* ---------- memòria ---------- */
+function memTools(){
+  const fac = canWrite();
+  return `${sample && fac ? `<button class="btn pri" data-act="synth">${S.session.synthesis ? "Torna a redactar la síntesi" : "Redacta una síntesi amb IA"}</button>` : ""}
+    ${downloads ? `<button class="btn" data-act="dl-html">Descarrega (HTML)</button><button class="btn" data-act="dl-md">Descarrega (Markdown)</button>` : ""}
+    <button class="btn" data-act="copy-md">Copia el text</button>`;
+}
+function mapBlocks(d){
+  const s = S.session, B = [];
+  const L = labelsOf(d.id);
+  if (d.kind === "zones"){
+    if (d.mission){ const m = s.mission || {}; if (m.objectiu || m.persones || m.impacte) B.push({ p:`Missió: Volem ${m.objectiu||"…"} per a ${m.persones||"…"} amb la finalitat de ${m.impacte||"…"}.` }); }
+    if (d.center && (s.centers||{})[d.id]) B.push({ p:`${d.center}: ${(s.centers||{})[d.id]}` });
+    for (const z of d.zones){ const it = L.filter(l => l.zone === z.id).map(l => l.text); if (it.length) B.push({ h:z.title, items:it }); }
+  } else if (d.kind === "canvas"){
+    const { centers, map } = clusterOf(d, L);
+    const others = L.filter(l => l.shape === "round" && !(d.clusterKinds||[]).includes(l.kind));
+    for (const o of others) B.push({ p:`${o.kind||"Etiqueta rodona"}: ${o.text}` });
+    for (const c of centers){ const it = L.filter(l => map[l.id] === c.id).map(l => l.text); B.push({ h:`${c.kind}: ${c.text}`, items: it.length ? it : ["(sense etiquetes associades)"] }); }
+    const loose = L.filter(l => l.shape !== "round" && !map[l.id]).map(l => l.text);
+    if (loose.length) B.push({ h: centers.length ? "Altres elements" : "Etiquetes", items:loose });
+  } else if (d.kind === "vote"){
+    const c = voteCounts(d.id);
+    const rows = ovalsOf(d.source).map(l => [l.text, c[l.id]||0]).sort((a,b) => b[1]-a[1]).filter(r => r[1] > 0);
+    if (rows.length) B.push({ table:{ head:["Idea","Punts"], rows } });
+  } else if (d.kind === "matrix"){
+    const { items, counts } = matrixItems(d);
+    const lvl = v => v == null ? "sense situar" : v < 34 ? "baixa" : v < 67 ? "mitjana" : "alta";
+    const rows = items.map(l => [ (s.finalIdea === l.id ? "★ " : "") + l.text, counts[l.id]||0, lvl(l.mx), lvl(l.my == null ? null : 100 - l.my) ]);
+    if (rows.length) B.push({ table:{ head:["Idea","Punts","Complexitat","Innovació"], rows } });
+    const fin = S.labels.find(l => l.id === s.finalIdea); if (fin) B.push({ p:`Idea finalista: ${fin.text}` });
+  } else if (d.kind === "nuf"){
+    const agg = nufAgg(d); const f1 = v => v == null ? "–" : (Math.round(v*10)/10).toLocaleString("ca-ES");
+    const rows = agg.rows.filter(r => r.resp).map(r => [r.l.text, f1(r.n), f1(r.u), f1(r.f), f1(r.total)]);
+    if (rows.length) B.push({ p:`${agg.respondents} persones han puntuat.` }, { table:{ head:["Idea","Nova","Útil","Factible","Total"], rows } });
+  } else if (d.kind === "tasks"){
+    if (d.view === "timeline"){
+      const rows = S.tasks.slice().sort((a,b) => (a.start||"9").localeCompare(b.start||"9")).map(t => [t.text, t.owner||"", (STATUSES.find(x=>x.id===(t.status||"todo"))||STATUSES[0]).t, t.start||"", t.end||""]);
+      if (rows.length) B.push({ table:{ head:["Tasca","Responsable","Estat","Inici","Final"], rows } });
+    } else if (S.tasks.length){
+      B.push({ p: STATUSES.map(st => `${st.t}: ${S.tasks.filter(t => (t.status||"todo") === st.id).length}`).join(" · ") });
+    }
+  }
+  if (!B.length) B.push({ p:"Sense aportacions registrades.", muted:true });
+  return B;
+}
+function blocksHtml(B){
+  return B.map(b => b.table ? `<table><thead><tr>${b.table.head.map(x => `<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${b.table.rows.map(r => `<tr>${r.map(x => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+    : b.h ? `<h3>${esc(b.h)}</h3><ul>${b.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p${b.muted?' class="muted"':""}>${esc(b.p)}</p>`).join("");
+}
+function blocksMd(B){
+  return B.map(b => b.table ? `| ${b.table.head.join(" | ")} |\n| ${b.table.head.map(()=>"---").join(" | ")} |\n${b.table.rows.map(r => `| ${r.map(x => String(x).replace(/\|/g,"/")).join(" | ")} |`).join("\n")}`
+    : b.h ? `**${b.h}**\n${b.items.map(x => `- ${x}`).join("\n")}` : b.p).join("\n\n");
+}
+function participantsCount(){
+  const ids = new Set();
+  S.labels.forEach(l => l.by && ids.add(l.by)); S.votes.forEach(v => (v.picks||[]).length && ids.add(v.uid)); S.nuf.forEach(v => ids.add(v.uid));
+  return ids.size;
+}
+function mdInline(t){ return esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+function memoryHtml(){
+  const s = S.session, r = ROUTES[s.route] || { name:"" };
+  const m = s.mission || {};
+  let h = `<header class="memhead"><span class="k">Memòria del procés</span><h1>${esc(s.title||"Sessió")}</h1><dl>
+    ${s.repte ? `<dt>Repte</dt><dd>${esc(s.repte)}</dd>` : ""}<dt>Recorregut</dt><dd>${esc(r.name)} (${esc(r.sub)})</dd>
+    <dt>Format</dt><dd>${s.mode==="documentacio"?"Documentació d'un procés fet":"Sessió en directe"}</dd><dt>Data</dt><dd>${esc(fmtDate(s.createdAt))}</dd>
+    <dt>Participació</dt><dd>${participantsCount()} persones han fet aportacions digitals · ${S.labels.length} etiquetes · ${S.photos.length} fotos</dd></dl></header>`;
+  if (s.synthesis) h += `<section class="synth"><span class="k">Síntesi</span>${s.synthesis.split(/\n{2,}/).map(p => `<p>${mdInline(p.trim())}</p>`).join("")}</section>`;
+  if (s.route === "cd" && (m.objectiu || m.persones || m.impacte)) h += `<div class="missionline">Volem <b>${esc(m.objectiu||"…")}</b> per a <b>${esc(m.persones||"…")}</b> amb la finalitat de <b>${esc(m.impacte||"…")}</b>.</div>`;
+  for (const id of s.maps){ const d = MAPS[id]; if (!d) continue;
+    const notes = (s.notes||{})[id]; const P = S.photos.filter(p => p.map === id);
+    h += `<section><h2><span class="n">${esc(d.num)}</span>${esc(d.title)}</h2>${blocksHtml(mapBlocks(d))}
+      ${notes ? `<p class="note"><b>Notes de facilitació.</b> ${esc(notes)}</p>` : ""}
+      ${P.length ? `<div class="mphotos">${P.map(p => `<img src="${esc(p.url || ("/_blob/" + p.assetId))}" alt="Foto del mapa ${esc(d.title)}" data-asset="${esc(p.assetId||"")}">`).join("")}</div>` : ""}</section>`;
+  }
+  return h;
+}
+function memoryMd(withSynth){
+  const s = S.session, r = ROUTES[s.route] || { name:"" }, m = s.mission || {};
+  let md = `# ${s.title||"Sessió"}\n\nMemòria del procés · ${r.name} · ${fmtDate(s.createdAt)}\n\n`;
+  if (s.repte) md += `**Repte:** ${s.repte}\n\n`;
+  md += `**Participació:** ${participantsCount()} persones amb aportacions digitals, ${S.labels.length} etiquetes, ${S.photos.length} fotos.\n\n`;
+  if (withSynth && s.synthesis) md += `## Síntesi\n\n${s.synthesis}\n\n`;
+  if (s.route === "cd" && (m.objectiu || m.persones || m.impacte)) md += `**Missió:** Volem ${m.objectiu||"…"} per a ${m.persones||"…"} amb la finalitat de ${m.impacte||"…"}.\n\n`;
+  for (const id of s.maps){ const d = MAPS[id]; if (!d) continue;
+    md += `## ${d.num}. ${d.title}\n\n${blocksMd(mapBlocks(d))}\n\n`;
+    const notes = (s.notes||{})[id]; if (notes) md += `*Notes de facilitació:* ${notes}\n\n`;
+  }
+  return md.trim() + "\n";
+}
+
+/* ============ Rellotge ============ */
+function tick(){
+  const left = timeLeft(), t = (S.session && S.session.timer) || {};
+  const txt = pad(Math.floor(left/60)) + ":" + pad(Math.floor(left%60));
+  for (const el of $$("[data-timer]")){ el.textContent = txt; el.classList.toggle("running", !!t.endsAt && left > 0); el.classList.toggle("done", !!t.endsAt && left <= 0); }
+}
+setInterval(() => { if (S.session && S.view === "session") tick(); }, 250);
+
+/* ============ Modal i avisos ============ */
+let toastT = null;
+function toast(msg){ const el = $("#toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 3600); }
+function openModal(html){ $("#mcard").innerHTML = html; $("#modal").hidden = false; const f = $("#mcard button, #mcard input"); if (f) f.focus(); }
+function closeModal(){ $("#modal").hidden = true; $("#mcard").innerHTML = ""; S.review = null; }
+
+/* ============ Transcripció amb IA ============ */
+function transcribePrompt(def){
+  let structure = "";
+  if (def.kind === "zones") structure = `El mapa té aquestes zones (identificador: títol): ${def.zones.map(z => `${z.id}: ${z.title}`).join("; ")}.${def.center ? ` Al centre hi ha un cercle amb l'${def.center.toLowerCase()}.` : ""}`;
+  else if (def.kind === "canvas") structure = `És un mapa lliure. Les etiquetes rodones poden ser d'aquests tipus: ${def.roundKinds.join("; ")}. Les ovals són ${String(def.ovalName||"idees").toLowerCase()}s.`;
+  else if (def.kind === "tasks") structure = `És un mapa de tasques amb aquestes columnes o estats (identificador: títol): ${STATUSES.map(s => `${s.id}: ${s.t}`).join("; ")}.`;
+  return `Ets un assistent que digitalitza mapes de treball Manual Thinking fets a mà en sessions col·lectives.
+A la imatge hi ha el mapa «${def.title}» del recorregut ${ROUTES[def.route].name}. ${structure}
+Transcriu cada etiqueta adhesiva escrita a mà que hi vegis. Respecta el text tal com està escrit i corregeix només lletres il·legibles evidents. No inventis etiquetes ni transcriguis els textos impresos del mapa. Omet les etiquetes il·legibles.
+Per a cada etiqueta indica:
+- "text": el contingut escrit
+- "forma": "oval" o "rodona"
+- "zona": l'identificador de la zona o columna on es troba, o null si no n'hi ha
+- "tipus": per a les rodones, el tipus que més s'hi ajusti de la llista, o null
+- "x" i "y": posició aproximada del centre de l'etiqueta en percentatge (0 a 100) des de la cantonada superior esquerra del mapa
+Respon NOMÉS amb JSON vàlid amb aquesta forma: {"etiquetes":[{"text":"...","forma":"oval","zona":null,"tipus":null,"x":50,"y":50}]}`;
+}
+function normalizeItems(res, def){
+  const arr = (res && Array.isArray(res.etiquetes)) ? res.etiquetes : Array.isArray(res) ? res : [];
+  return arr.filter(e => e && typeof e.text === "string" && e.text.trim()).slice(0, 120).map(e => {
+    const it = { on:true, text:e.text.trim().slice(0,200), shape: e.forma === "rodona" ? "round" : "oval", kind:null, zone:null,
+      x: typeof e.x === "number" ? clamp(e.x, 4, 96) : null, y: typeof e.y === "number" ? clamp(e.y, 6, 94) : null };
+    if (def.kind === "zones") it.zone = def.zones.some(z => z.id === e.zona) ? e.zona : def.zones[0].id;
+    if (def.kind === "tasks") it.zone = STATUSES.some(s => s.id === e.zona) ? e.zona : "todo";
+    if (def.kind === "canvas" && it.shape === "round") it.kind = def.roundKinds.includes(e.tipus) ? e.tipus : def.roundKinds[def.roundKinds.length > 1 ? 1 : 0];
+    return it;
+  });
+}
+async function transcribe(pid){
+  const p = S.photos.find(x => x.id === pid); if (!p || !sample) return;
+  const def = MAPS[p.map];
+  openModal(`<h3>Transcrivint la foto</h3><p class="muted">La IA està llegint les etiquetes del mapa «${esc(def.title)}». Pot trigar uns segons.</p><div class="spin" aria-hidden="true"></div><div class="mbtns"><button class="btn" data-act="close-modal">Cancel·la</button></div>`);
+  try {
+    const blob = await (await fetch(p.url || ("/_blob/" + p.assetId))).blob();
+    const opts = { images:[blob], modelTier:"default" };
+    let res;
+    if (typeof sample.json === "function") res = await sample.json(transcribePrompt(def), opts);
+    else { const r = await sample(transcribePrompt(def), opts); const mm = String((r && r.text) || "").match(/\{[\s\S]*\}/); res = mm ? JSON.parse(mm[0]) : null; }
+    if ($("#modal").hidden) return;
+    const items = normalizeItems(res, def);
+    if (!items.length){ openModal(`<h3>No s'han trobat etiquetes</h3><p>La IA no ha pogut llegir cap etiqueta en aquesta foto. Proveu amb una foto més frontal i ben il·luminada.</p><div class="mbtns"><button class="btn pri" data-act="close-modal">Tanca</button></div>`); return; }
+    S.review = { pid, map:def.id, items };
+    openModal(reviewHtml());
+  } catch(e){
+    if ($("#modal").hidden) return;
+    const msg = e && e.code === "not_granted" ? "No s'ha donat permís per fer servir la IA en aquesta pàgina." : e && e.code === "rate_limited" ? "S'han fet massa peticions. Espereu un moment i torneu-ho a provar." : "Hi ha hagut un error en llegir la foto.";
+    openModal(`<h3>No s'ha pogut transcriure</h3><p>${esc(msg)}</p><div class="mbtns"><button class="btn pri" data-act="close-modal">Tanca</button></div>`);
+  }
+}
+function reviewHtml(){
+  const rv = S.review, def = MAPS[rv.map];
+  const opt = (it, i) => {
+    if (def.kind === "zones") return `<select data-ri="${i}" data-f="zone" aria-label="Zona">${def.zones.map(z => `<option value="${z.id}" ${z.id===it.zone?"selected":""}>${esc(z.title)}</option>`).join("")}</select>`;
+    if (def.kind === "tasks") return `<select data-ri="${i}" data-f="zone" aria-label="Estat">${STATUSES.map(z => `<option value="${z.id}" ${z.id===it.zone?"selected":""}>${z.t}</option>`).join("")}</select>`;
+    return `<select data-ri="${i}" data-f="type" aria-label="Tipus"><option value="oval" ${it.shape!=="round"?"selected":""}>${esc(def.ovalName||"Idea")} (oval)</option>${def.roundKinds.map(k => `<option value="round:${esc(k)}" ${it.shape==="round"&&it.kind===k?"selected":""}>${esc(k)}</option>`).join("")}</select>`;
+  };
+  const n = rv.items.filter(i => i.on).length;
+  return `<h3>Revisa la transcripció</h3><p class="muted" style="margin:0">${rv.items.length} etiquetes detectades al mapa «${esc(def.title)}». Corregiu el text si cal i desmarqueu les que no vulgueu importar.</p>
+  <div class="rev">${rv.items.map((it,i) => `<div class="revrow"><input type="checkbox" data-ri="${i}" data-f="on" ${it.on?"checked":""} aria-label="Importa aquesta etiqueta"><input data-ri="${i}" data-f="text" value="${esc(it.text)}" aria-label="Text">${opt(it,i)}</div>`).join("")}</div>
+  <div class="mbtns"><button class="btn" data-act="close-modal">Cancel·la</button><button class="btn pri" data-act="import-review" id="imp-btn">Importa ${n} ${n===1?"etiqueta":"etiquetes"}</button></div>`;
+}
+async function importReview(){
+  const rv = S.review; if (!rv) return;
+  const def = MAPS[rv.map], items = rv.items.filter(i => i.on && i.text.trim());
+  closeModal(); toast("Important " + items.length + " etiquetes…");
+  for (const it of items){
+    if (def.kind === "tasks") await addTask({ text:it.text, status:it.zone });
+    else await addLabel(def.id, { text:it.text, shape:it.shape, kind:it.kind, zone:it.zone, x:it.x, y:it.y, src:"foto" });
+  }
+  const p = "photos/" + rv.pid;
+  queueWrite(p, () => db.doc(p).update({ imported: items.length }));
+  toast(items.length + " etiquetes importades de la foto.");
+}
+
+/* ============ Síntesi i exportació ============ */
+async function synthesize(){
+  if (!sample) return;
+  openModal(`<h3>Redactant la síntesi</h3><p class="muted">La IA llegeix la memòria de la sessió.</p><div class="spin" aria-hidden="true"></div>`);
+  const prompt = `Ets una facilitadora experta en processos participatius en l'àmbit cultural. A partir de la memòria d'una sessió feta amb el sistema Manual Thinking, redacta una síntesi en català de 200 a 300 paraules adreçada a l'equip que hi ha participat.
+Estructura-la en quatre paràgrafs breus que comencin amb aquests títols en negreta: **Punt de partida.** **Què ha emergit.** **Decisions preses.** **Properes passes.**
+Basa't només en les dades de la memòria. Si una part no té dades, digues-ho en una frase.
+Estil: frases clares, curtes i directes. No facis servir guions per introduir incisos. No facis servir construccions comparatives del tipus «no és X sinó Y». Separa els paràgrafs amb una línia en blanc i respon només amb el text de la síntesi.
+
+MEMÒRIA:
+${memoryMd(false)}`;
+  try {
+    const r = await sample(prompt, { modelTier:"default" });
+    const text = String((r && r.text) || "").trim();
+    closeModal();
+    if (text){ updSession({ synthesis: text.slice(0, 6000) }); toast("Síntesi afegida a la memòria."); }
+  } catch(e){ openModal(`<h3>No s'ha pogut redactar la síntesi</h3><p>${esc(e && e.code === "rate_limited" ? "Massa peticions seguides. Torneu-ho a provar d'aquí a una estona." : "Hi ha hagut un error amb la IA.")}</p><div class="mbtns"><button class="btn pri" data-act="close-modal">Tanca</button></div>`); }
+}
+function slug(){ return String(S.session.title || "sessio").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60) || "sessio"; }
+async function blobToDataUrl(b){ return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(b); }); }
+async function downloadHtml(){
+  toast("Preparant el fitxer…");
+  const box = document.createElement("div"); box.innerHTML = memoryHtml();
+  for (const img of $$("img", box)){ try { const b = await (await fetch(img.getAttribute("src"))).blob(); img.setAttribute("src", await blobToDataUrl(b)); } catch(e){ img.remove(); } }
+  const css = `body{font-family:Archivo,Helvetica,Arial,sans-serif;max-width:860px;margin:40px auto;padding:0 20px;color:#121212;line-height:1.5}h1{font-size:34px;margin:6px 0 12px}h2{border-bottom:3px solid #121212;padding-bottom:6px;margin-top:32px;display:flex;gap:10px;align-items:center}h2 .n{width:30px;height:30px;border-radius:50%;border:3px solid #121212;display:inline-grid;place-items:center;font-size:12px}h3{font-size:14px;text-transform:uppercase;margin:14px 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0ea}.k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px}dt{font-weight:800}dd{margin:0}.synth{background:#fff1a8;border-radius:12px;padding:14px 18px}.missionline{background:#121212;color:#fff;border-radius:12px;padding:14px 18px}.note{background:#f0f0ea;border-radius:10px;padding:10px 12px}.mphotos{display:flex;gap:8px;flex-wrap:wrap}.mphotos img{width:240px;border:2px solid #121212;border-radius:6px}.muted{color:#666}`;
+  const html = `<!DOCTYPE html><html lang="ca"><head><meta charset="utf-8"><title>${esc(S.session.title||"Memòria")}</title><style>${css}</style></head><body>${box.innerHTML}<p class="muted">Generat amb Manual Thinking en línia.</p></body></html>`;
+  try { await downloads.save({ filename: "memoria-" + slug() + ".html", data: html }); } catch(e){ if (e && e.code !== "declined") toast("No s'ha pogut descarregar el fitxer."); }
+}
+async function downloadMd(){
+  try { await downloads.save({ filename: "memoria-" + slug() + ".md", data: memoryMd(true) }); } catch(e){ if (e && e.code !== "declined") toast("No s'ha pogut descarregar el fitxer."); }
+}
+
+/* ============ Esdeveniments ============ */
+function setRole(r){ S.role = r; LS.set("mt-role-" + S.sid, r); setPresence(); render(); }
+function setPresence(){ if (room) room.presence({ sid: S.view === "session" ? S.sid : null, role: S.view === "session" ? S.role : null }).catch(()=>{}); }
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) { if (e.target.id === "modal") closeModal(); return; }
+  const a = b.dataset.act;
+  if (b.tagName === "INPUT" || b.tagName === "SELECT" || b.tagName === "TEXTAREA") return;
+  const s = S.session;
+  switch (a){
+    case "enter": LS.set("mt-role-" + b.dataset.sid, b.dataset.role); if (S.sid === b.dataset.sid) setRole(b.dataset.role); break;
+    case "role": setRole(b.dataset.role); break;
+    case "pick-map": S.mapId = b.dataset.map; render(); break;
+    case "go-live": updSession({ current: b.dataset.map }); break;
+    case "t-set": { const sec = +b.dataset.min * 60; updSession({ timer:{ duration:sec, remaining:sec, endsAt:null } }); break; }
+    case "t-start": { const t = s.timer || {}; if (t.endsAt) break; const rem = num(t.remaining, num(t.duration, 300)) || num(t.duration, 300); updSession({ timer:{ endsAt: now() + rem*1000, remaining: rem } }); break; }
+    case "t-pause": { const t = s.timer || {}; if (!t.endsAt) break; updSession({ timer:{ endsAt:null, remaining: Math.max(0, Math.round((t.endsAt - now())/1000)) } }); break; }
+    case "t-reset": { const t = s.timer || {}; updSession({ timer:{ endsAt:null, remaining: num(t.duration, 300) } }); break; }
+    case "del-label": e.stopPropagation(); if (db) db.doc("labels/" + b.dataset.lid).delete().catch(fail); break;
+    case "del-task": if (db) db.doc("tasks/" + b.dataset.tid).delete().catch(fail); break;
+    case "vote": {
+      const map = b.dataset.map, lid = b.dataset.lid, def = MAPS[map];
+      let picks = myPicks(map).slice();
+      if (picks.includes(lid)) picks = picks.filter(x => x !== lid); else if (picks.length < def.maxVotes) picks.push(lid); else return;
+      localVotes[map] = picks; render();
+      const p = "votes/" + S.sid + "__" + map + "__" + me.pid;
+      queueWrite(p, () => db.doc(p).set({ sid:S.sid, map, uid:me.pid, picks, at:now() }));
+      break;
+    }
+    case "final": updSession({ finalIdea: s.finalIdea === b.dataset.lid ? null : b.dataset.lid }); break;
+    case "reveal": updSession({ reveal:{ [b.dataset.map]: !((s.reveal||{})[b.dataset.map]) } }); break;
+    case "transcribe": transcribe(b.dataset.pid); break;
+    case "del-photo": {
+      if (!b.classList.contains("armed")){ b.classList.add("armed"); b.textContent = "Confirma"; setTimeout(() => { b.classList.remove("armed"); b.textContent = "Elimina"; }, 3000); return; }
+      const ph = S.photos.find(x => x.id === b.dataset.pid);
+      if (db) db.doc("photos/" + b.dataset.pid).delete().catch(fail);
+      if (ph && ph.assetId && assets) assets.delete(ph.assetId).catch(()=>{});
+      break;
+    }
+    case "close-modal": closeModal(); break;
+    case "import-review": importReview(); break;
+    case "synth": synthesize(); break;
+    case "dl-html": downloadHtml(); break;
+    case "dl-md": downloadMd(); break;
+    case "copy-md": navigator.clipboard.writeText(memoryMd(true)).then(() => toast("Text de la memòria copiat."), () => toast("No s'ha pogut copiar el text.")); break;
+  }
+});
+
+document.addEventListener("change", async e => {
+  const t = e.target, a = t.dataset && t.dataset.act;
+  if (t.matches && t.matches("[data-ri]")) return;
+  if (!a) return;
+  if (a === "route-pick"){ S.newRoute = t.value; paint($("#ns-maps"), mapChecks(t.value)); return; }
+  if (a === "alias"){ LS.set("mt-alias", t.value.trim().slice(0,40)); toast("Signaràs com " + (t.value.trim() || "Participant") + "."); return; }
+  if (a === "mission"){ updSession({ mission:{ [t.dataset.k]: t.value.trim().slice(0,200) } }); return; }
+  if (a === "center"){ updSession({ centers:{ [t.dataset.map]: t.value.trim().slice(0,120) } }); return; }
+  if (a === "task-status"){ const p = "tasks/" + t.dataset.tid; queueWrite(p, () => db.doc(p).update({ status: t.value })); return; }
+  if (a === "nuf"){
+    const map = t.dataset.map, lid = t.dataset.lid, k = t.dataset.k;
+    const sc = myNuf(map); sc[lid] = Object.assign({}, sc[lid], { [k]: t.value ? +t.value : null }); localNuf[map] = sc;
+    const p = "nuf/" + S.sid + "__" + map + "__" + me.pid;
+    queueWrite(p, () => db.doc(p).set({ sid:S.sid, map, uid:me.pid, scores: localNuf[map], at:now() }));
+    t.blur(); render(); return;
+  }
+  if (a === "upload"){
+    const f = t.files && t.files[0]; t.value = ""; if (!f || !assets) return;
+    if (!/^image\//.test(f.type)){ toast("Cal una imatge."); return; }
+    toast("Pujant la foto…");
+    try { const r = await assets.upload(f); await db.collection("photos").doc().set({ sid:S.sid, map:t.dataset.map, assetId:r.id, url:r.url, by:me.pid, createdAt:now() }); toast("Foto afegida al mapa."); }
+    catch(err){ toast("No s'ha pogut pujar la foto" + (err && err.message ? ": " + err.message : ".")); }
+  }
+});
+
+let notesT = null;
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.matches("[data-ri]") && S.review){
+    const it = S.review.items[+t.dataset.ri], f = t.dataset.f;
+    if (f === "on") it.on = t.checked; else if (f === "text") it.text = t.value; else if (f === "zone") it.zone = t.value;
+    else if (f === "type"){ if (t.value === "oval"){ it.shape = "oval"; it.kind = null; } else { it.shape = "round"; it.kind = t.value.slice(6); } }
+    const n = S.review.items.filter(i => i.on).length, btn = $("#imp-btn"); if (btn) btn.textContent = "Importa " + n + (n===1?" etiqueta":" etiquetes");
+    return;
+  }
+  if (t.dataset.act === "notes"){ const map = t.dataset.map, v = t.value.slice(0,4000); clearTimeout(notesT); notesT = setTimeout(() => updSession({ notes:{ [map]: v } }), 700); }
+});
+
+document.addEventListener("focusout", () => setTimeout(() => { if ($$("[data-pending]").length) render(); }, 0));
+
+document.addEventListener("submit", async e => {
+  const f = e.target; e.preventDefault();
+  const fd = new FormData(f);
+  if (f.dataset.form === "join"){ const c = String(fd.get("code")||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""); if (c){ LS.set("mt-role-" + c, LS.get("mt-role-" + c, "part")); location.hash = "#s-" + c; } return; }
+  if (f.dataset.form === "new"){
+    if (!db){ toast("Cal obrir l'eina a claude.ai per crear sessions."); return; }
+    const route = fd.get("route") || "cd";
+    const maps = fd.getAll("maps").filter(id => MAPS[id] && MAPS[id].route === route);
+    if (!maps.length){ toast("Tria com a mínim un mapa."); return; }
+    const sid = rid(6);
+    const doc = { title:String(fd.get("title")||"").trim().slice(0,120) || "Sessió sense títol", repte:String(fd.get("repte")||"").trim().slice(0,400), route, mode: fd.get("mode") || "directe",
+      maps, current:maps[0], createdBy:me.pid, createdAt:now(), timer:{ duration:300, remaining:300, endsAt:null }, mission:{}, centers:{}, notes:{}, reveal:{}, finalIdea:null, synthesis:"" };
+    try { await db.doc("sessions/" + sid).set(doc); LS.set("mt-role-" + sid, "fac"); location.hash = "#s-" + sid; } catch(err){ fail(err); }
+    return;
+  }
+  if (f.dataset.form === "label"){
+    const def = MAPS[f.dataset.map]; const text = String(fd.get("text")||"").trim(); if (!text) return;
+    const d = { text };
+    if (def.kind === "zones") d.zone = fd.get("zone");
+    if (def.kind === "canvas"){ const v = String(fd.get("shape")||"oval"); if (v.startsWith("round:")){ d.shape = "round"; d.kind = v.slice(6); } else d.shape = "oval"; }
+    f.elements.text.value = ""; f.elements.text.focus();
+    addLabel(def.id, d); return;
+  }
+  if (f.dataset.form === "task"){
+    const d = { text:fd.get("text"), owner:fd.get("owner"), start:fd.get("start"), end:fd.get("end") };
+    f.reset(); f.elements.text.focus(); addTask(d);
+  }
+});
+
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#modal").hidden) closeModal(); });
+
+/* edició de text d'etiqueta amb doble clic */
+document.addEventListener("dblclick", e => {
+  const t = e.target.closest(".lbl .t[data-edit]"); if (!t) return;
+  const lid = t.closest(".lbl").dataset.lid, l = S.labels.find(x => x.id === lid); if (!l) return;
+  t.contentEditable = "true"; t.focus();
+  const r = document.createRange(); r.selectNodeContents(t); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  const done = () => { t.contentEditable = "false"; const v = t.textContent.trim(); if (v && v !== l.text) updLabel(lid, { text:v.slice(0,200) }); else t.textContent = l.text; };
+  t.addEventListener("blur", done, { once:true });
+  t.addEventListener("keydown", ev => { if (ev.key === "Enter"){ ev.preventDefault(); t.blur(); } if (ev.key === "Escape"){ t.textContent = l.text; t.blur(); } });
+});
+
+/* arrossegar al llenç i a la matriu */
+let drag = null;
+document.addEventListener("pointerdown", e => {
+  const lbl = e.target.closest(".paper .lbl"); if (!lbl || e.target.closest("button") || e.target.isContentEditable) return;
+  const paper = lbl.closest(".paper"); if (paper.classList.contains("ro") || !canWrite()) return;
+  drag = { lid:lbl.dataset.lid, el:lbl, r:paper.getBoundingClientRect(), mode:paper.dataset.mode, sx:e.clientX, sy:e.clientY, ox:parseFloat(lbl.style.left), oy:parseFloat(lbl.style.top), moved:false, pid:e.pointerId };
+});
+document.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.pid) return;
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved){ if (Math.hypot(dx, dy) < 4) return; drag.moved = true; S.dragging = true; drag.el.classList.add("dragging"); try { drag.el.setPointerCapture(e.pointerId); } catch(_){} }
+  drag.x = clamp(drag.ox + dx / drag.r.width * 100, 3, 97); drag.y = clamp(drag.oy + dy / drag.r.height * 100, 4, 96);
+  drag.el.style.left = drag.x + "%"; drag.el.style.top = drag.y + "%";
+});
+function endDrag(){
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.moved) return;
+  S.dragging = false; d.el.classList.remove("dragging");
+  const x = Math.round(d.x*10)/10, y = Math.round(d.y*10)/10;
+  const l = S.labels.find(q => q.id === d.lid);
+  if (l){ if (d.mode === "matrix"){ l.mx = x; l.my = y; } else { l.x = x; l.y = y; } }
+  updLabel(d.lid, d.mode === "matrix" ? { mx:x, my:y } : { x, y });
+  const b = $("#board"); if (b) b._html = null;
+  render();
+}
+document.addEventListener("pointerup", endDrag);
+document.addEventListener("pointercancel", endDrag);
+
+/* arrossegar entre zones i columnes */
+document.addEventListener("dragstart", e => {
+  const l = e.target.closest && e.target.closest(".zone .lbl[draggable=true]");
+  const t = e.target.closest && e.target.closest(".tcard[draggable=true]");
+  if (l) e.dataTransfer.setData("text/plain", "L:" + l.dataset.lid);
+  else if (t) e.dataTransfer.setData("text/plain", "T:" + t.dataset.tid);
+});
+document.addEventListener("dragover", e => { const z = e.target.closest && e.target.closest(".zone,.kcol"); if (z){ e.preventDefault(); z.classList.add("over"); } });
+document.addEventListener("dragleave", e => { const z = e.target.closest && e.target.closest(".zone,.kcol"); if (z && !z.contains(e.relatedTarget)) z.classList.remove("over"); });
+document.addEventListener("drop", e => {
+  const z = e.target.closest && e.target.closest(".zone,.kcol"); if (!z) return;
+  e.preventDefault(); z.classList.remove("over");
+  const v = e.dataTransfer.getData("text/plain") || "";
+  if (v.startsWith("L:") && z.classList.contains("zone") && z.dataset.zone) updLabel(v.slice(2), { zone: z.dataset.zone });
+  if (v.startsWith("T:") && z.classList.contains("kcol")){ const p = "tasks/" + v.slice(2); queueWrite(p, () => db.doc(p).update({ status: z.dataset.status })); }
+});
+
+/* ============ Encaminament i subscripcions ============ */
+function route(){
+  const h = location.hash.replace(/^#/, "");
+  const m = /^s-([a-z0-9]{4,12})$/.exec(h);
+  if (m) openSession(m[1]);
+  else { closeSession(); S.view = "home"; setPresence(); render(); }
+}
+function closeSession(){
+  subs.forEach(u => { try { u(); } catch(e){} }); subs = [];
+  S.sid = null; S.session = null; S.sessionMissing = false;
+  for (const k of Object.keys(localVotes)) delete localVotes[k];
+  for (const k of Object.keys(localNuf)) delete localNuf[k];
+}
+function openSession(sid){
+  if (S.view === "session" && S.sid === sid) return;
+  closeSession();
+  Object.assign(S, { view:"session", sid, session:null, labels:[], votes:[], nuf:[], tasks:[], photos:[], mapId:null, role: LS.get("mt-role-" + sid, null) });
+  render(); setPresence();
+  if (!db) return;
+  subs.push(db.doc("sessions/" + sid).onSnapshot(d => {
+    if (S.sid !== sid) return;
+    if (!d.exists){ if (!d.metadata.fromCache){ S.sessionMissing = true; render(); } return; }
+    const first = !S.session;
+    S.session = Object.assign({ id:d.id }, d.data());
+    if (!Array.isArray(S.session.maps)) S.session.maps = [];
+    if (first && !S.role){ S.role = (S.session.createdBy === me.pid || me.isOwner) ? "fac" : "part"; setPresence(); }
+    if (!S.mapId || !S.session.maps.includes(S.mapId)) S.mapId = S.session.current || S.session.maps[0];
+    render();
+  }, err => { S.err = err.message; render(); }));
+  for (const c of ["labels","votes","nuf","tasks","photos"]){
+    subs.push(db.collection(c).where("sid","==",sid).onSnapshot(snap => {
+      if (S.sid !== sid) return;
+      S[c] = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
+      render();
+    }, () => {}));
+  }
+}
+function subscribeSessions(){
+  const t = setTimeout(() => { if (S.sessionsLoading){ S.sessionsLoading = false; render(); } }, 10000);
+  db.collection("sessions").orderBy("createdAt","desc").limit(60).onSnapshot(snap => {
+    if (!snap.metadata.fromCache) clearTimeout(t);
+    S.sessionsLoading = false;
+    S.sessions = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
+    if (S.view === "home") render();
+  }, () => { clearTimeout(t); S.sessionsLoading = false; render(); });
+}
+
+async function init(){
+  render();
+  window.addEventListener("hashchange", route);
+  const C = window.claude;
+  const use = n => (C && typeof C.use === "function") ? C.use(n).catch(() => null) : Promise.resolve(null);
+  [db, user, room, sample, assets, downloads] = await Promise.all(["db","user","room","sample","assets","downloads"].map(use));
+  if (user){
+    try { const m = await user.me(); me.uid = m.id; me.isOwner = !!m.isOwner; me.canEdit = !!m.canEdit; } catch(e){}
+    try { if (typeof user.can === "function") me.canWrite = await user.can("data.write"); } catch(e){}
+  }
+  me.pid = me.uid || LS.get("mt-pid", null) || (() => { const p = "local-" + rid(10); LS.set("mt-pid", p); return p; })();
+  if (sample && typeof sample.limits === "function"){ try { const l = await sample.limits(); S.aiImages = !!(l && l.images); } catch(e){ S.aiImages = false; } }
+  else if (sample) S.aiImages = true;
+  if (room){ try { room.onPeers(ch => { S.peers = ch.peers; const el = $("#topdyn"); if (el) paint(el, topDyn()); }, () => {}); } catch(e){} }
+  S.ready = true;
+  if (db) subscribeSessions(); else S.sessionsLoading = false;
+  const app = $("#app"); app.dataset.key = "";
+  route();
+}
+init();
+</script>
+</body>
+</html>
