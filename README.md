@@ -18,35 +18,47 @@ L'eina fa de **mapa bessó digital**: el mapa físic continua al centre de la sa
 - **Tipus de mapa**: zones, llenç lliure amb agrupació automàtica, votació amb 3 punts vermells, matriu complexitat/innovació, test NUF i tasques (timeline i kanban sincronitzats).
 - **Fotos del mapa físic** amb transcripció de les etiquetes per IA i revisió abans d'importar-les.
 
-## Estat actual
+## Dos entorns
 
-La versió de validació funciona publicada com a artefacte de Claude:
-https://claude.ai/artifact/Efnt3Z8sistVF1zu5KhzWy
+L'eina funciona en dos entorns amb el mateix `index.html`:
 
-En aquest entorn, l'eina fa servir les capacitats de la plataforma de Claude:
+- **Dins de Claude** (versió de validació): https://claude.ai/artifact/Efnt3Z8sistVF1zu5KhzWy. Fa servir les capacitats de la plataforma de Claude.
+- **GitHub Pages amb Supabase**: `supabase-adapter.js` ofereix la mateixa interfície fent servir Supabase.
 
-| Funció | Capacitat |
-| --- | --- |
-| Dades compartides en temps real | `db` |
-| Persones connectades | `room` |
-| Identitat i noms | `user` |
-| Fotos | `assets` |
-| Transcripció i síntesi amb IA | `sample` |
-| Descàrregues | `downloads` |
+| Funció | A Claude | Amb Supabase |
+| --- | --- | --- |
+| Dades compartides en temps real | `db` | Taula `docs` amb Realtime |
+| Persones connectades | `room` | Realtime Presence |
+| Identitat | `user` | Accés anònim de Supabase Auth |
+| Fotos | `assets` | Storage, bucket `fotos` |
+| Transcripció i síntesi amb IA | `sample` | Edge Function `ia` amb l'API d'Anthropic |
+| Descàrregues | `downloads` | Descàrrega del navegador |
 
-Si s'obre `index.html` fora de Claude (per exemple, a GitHub Pages), la pàgina es carrega però queda en **mode només lectura**: no pot desar sessions ni connectar persones. El pas a un servidor propi es descriu a [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+## Posada en marxa amb Supabase
+
+1. Creeu un projecte a Supabase en una regió de la UE.
+2. A **Authentication**, activeu *Allow anonymous sign-ins* i apugeu el límit d'altes anònimes per hora a **Rate Limits**.
+3. A l'**SQL Editor**, executeu `supabase/schema.sql` i després `supabase/update-01.sql`.
+4. A **Edge Functions**, creeu la funció `ia` amb el codi de `supabase/functions/ia/index.ts` i afegiu el secret `ANTHROPIC_API_KEY`.
+5. Escriviu la URL del projecte i la *publishable key* a `config.js`.
+6. Activeu GitHub Pages a **Settings → Pages** (branca `main`, carpeta arrel).
 
 ## Estructura
 
 ```
-index.html            Aplicació completa (HTML, CSS i JavaScript en un sol fitxer)
-docs/ARQUITECTURA.md  Model de dades, definició dels mapes i camí cap a un backend propi
+index.html                     Aplicació completa (HTML, CSS i JavaScript)
+config.js                      URL i clau pública del projecte de Supabase
+supabase-adapter.js            Connexió de l'eina amb Supabase
+supabase/schema.sql            Taules, seguretat, temps real i bucket de fotos
+supabase/update-01.sql         Funció d'actualització parcial de documents
+supabase/functions/ia/index.ts Funció de servidor per a la IA
+docs/ARQUITECTURA.md           Model de dades i definició dels mapes
 ```
 
 ## Com fer canvis
 
 1. Editeu `index.html`.
-2. Per provar-lo amb dades reals, torneu a publicar l'artefacte a Claude amb el fitxer nou.
+2. Proveu-lo localment o a GitHub Pages.
 3. Feu commit i push al repositori.
 
 Els continguts dels mapes (títols, zones, preguntes i instruccions) són a l'objecte `ROUTES`, al principi del bloc `<script>`. Per afegir o modificar un mapa n'hi ha prou de tocar aquest objecte.
