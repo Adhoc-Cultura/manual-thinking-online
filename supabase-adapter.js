@@ -43,6 +43,7 @@
   const fail = (code, message) => ({ code, message: message || code });
   function mapErr(e) {
     if (!e) return fail("unavailable");
+    console.error("Manual Thinking (Supabase):", e.code || "", e.message || e, e.details || "", e.hint || "");
     if (["invalid_argument", "rate_limited", "unavailable", "upstream_error", "not_configured"].includes(e.code)) return e;
     if (e.code === "42501" || /row-level security|permission denied/i.test(e.message || "")) return fail("invalid_argument", "Sense permís per desar");
     if (e.code === "P0002") return fail("invalid_argument", "El document no existeix");
