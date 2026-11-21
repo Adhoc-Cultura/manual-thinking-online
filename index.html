@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Backend propi (Supabase). Dins de Claude aquests fitxers no hi són i l'eina fa servir la plataforma. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="supabase-adapter.js"></script>
 <style>
 :root{
   /* Mapa bessó: paper quadriculat, tinta negra i punts vermells de votació, com el kit físic */
@@ -344,6 +348,7 @@ details.howto summary{font-weight:800;cursor:pointer}
 "use strict";
 /* ============ Configuració ============ */
 const ARTIFACT_URL = "https://claude.ai/artifact/Efnt3Z8sistVF1zu5KhzWy";
+const appUrl = () => window.claude ? ARTIFACT_URL : location.href.split("#")[0];
 
 const ROUTES = {
   dt: {
@@ -626,7 +631,7 @@ function ensureProfiles(){
 /* ---------- inici ---------- */
 function homeShell(){
   return `
-  <header class="top"><div class="brand"><span class="mark" aria-hidden="true"></span><div><b>Manual Thinking</b><span>en línia · prototip de validació</span></div></div></header>
+  <header class="top"><div class="brand"><span class="mark" aria-hidden="true"></span><div><b>Manual Thinking</b><span>en línia · versió de proves</span></div></div></header>
   <main class="home">
     <section class="intro">
       <h1>Prepara, facilita i documenta sessions col·lectives</h1>
@@ -667,7 +672,7 @@ function mapChecks(route){
 }
 function bannerHtml(){
   if (!S.ready) return "";
-  if (!db) return `<div class="banner"><b>Mode només lectura.</b> Per crear i compartir sessions cal obrir aquesta eina a claude.ai amb la sessió iniciada.</div>`;
+  if (!db) return `<div class="banner"><b>Sense connexió amb la base de dades.</b> Comproveu la connexió a internet i la configuració de l'eina (config.js).</div>`;
   if (me.canWrite === false) return `<div class="banner"><b>Tens accés de lectura.</b> Demana a la persona propietària que et doni accés de col·laboració per poder afegir etiquetes.</div>`;
   return "";
 }
@@ -686,7 +691,7 @@ function sessionsList(){
 /* ---------- sessió ---------- */
 function loadingHtml(){
   const back = `<header class="top"><a class="back" href="#inici">Sessions</a></header>`;
-  if (S.ready && !db) return back + `<main class="home"><div class="banner">Aquesta vista no pot llegir sessions. Obre l'eina a claude.ai amb la sessió iniciada.</div></main>`;
+  if (S.ready && !db) return back + `<main class="home"><div class="banner">No hi ha connexió amb la base de dades. Comproveu la connexió a internet i torneu-ho a provar.</div></main>`;
   if (S.sessionMissing) return back + `<main class="home"><div class="card"><h2>No hem trobat la sessió ${esc(String(S.sid).toUpperCase())}</h2><p>Comprova el codi o torna a la llista de sessions.</p><div><a class="btn pri" href="#inici">Torna a l'inici</a></div></div></main>`;
   return back + `<main class="home"><p class="muted">Carregant la sessió…</p></main>`;
 }
@@ -710,8 +715,8 @@ function sessionShell(role, def){
     <div id="composer">${composerHtml(def)}</div><div><div id="board" class="board"></div>${mtbar(def)}</div></main>`;
 }
 function afterShell(role){
-  if (role === "sala" && ARTIFACT_URL && window.QRCode){
-    const el = $("#qr"); if (el){ try { new QRCode(el, { text: ARTIFACT_URL + "#s-" + S.sid, width:300, height:300, correctLevel: QRCode.CorrectLevel.M }); } catch(e){} }
+  if (role === "sala" && window.QRCode){
+    const el = $("#qr"); if (el){ try { new QRCode(el, { text: appUrl() + "#s-" + S.sid, width:300, height:300, correctLevel: QRCode.CorrectLevel.M }); } catch(e){} }
   }
 }
 function mtbar(def){ return `<div class="mtbar"><span>${esc(ROUTES[def.route].name.toUpperCase())} · MAPA ${esc(def.num)}: <b>${esc(def.title.toUpperCase())}</b></span><b>Manual Thinking®</b></div>`; }
@@ -1217,7 +1222,7 @@ document.addEventListener("submit", async e => {
   const fd = new FormData(f);
   if (f.dataset.form === "join"){ const c = String(fd.get("code")||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""); if (c){ LS.set("mt-role-" + c, LS.get("mt-role-" + c, "part")); location.hash = "#s-" + c; } return; }
   if (f.dataset.form === "new"){
-    if (!db){ toast("Cal obrir l'eina a claude.ai per crear sessions."); return; }
+    if (!db){ toast("No hi ha connexió amb la base de dades."); return; }
     const route = fd.get("route") || "cd";
     const maps = fd.getAll("maps").filter(id => MAPS[id] && MAPS[id].route === route);
     if (!maps.length){ toast("Tria com a mínim un mapa."); return; }
@@ -1350,7 +1355,7 @@ function subscribeSessions(){
 async function init(){
   render();
   window.addEventListener("hashchange", route);
-  const C = window.claude;
+  const C = window.claude || window.MT_BACKEND;
   const use = n => (C && typeof C.use === "function") ? C.use(n).catch(() => null) : Promise.resolve(null);
   [db, user, room, sample, assets, downloads] = await Promise.all(["db","user","room","sample","assets","downloads"].map(use));
   if (user){
